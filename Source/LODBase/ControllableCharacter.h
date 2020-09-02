@@ -21,6 +21,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UCameraComponent* Camera;
 
+	FVector MoveDirection;
+
 public:
 	AControllableCharacter();
 
@@ -31,4 +33,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	void MoveForward(float AxisValue);
+	void MoveRight(float AxisValue);
 };
