@@ -44,6 +44,7 @@ void AControllableCharacter::SetupPlayerInputComponent(UInputComponent * PlayerI
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AControllableCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AControllableCharacter::MoveRight);
+	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
 }
 
 void AControllableCharacter::MoveForward(float AxisValue)
