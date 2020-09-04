@@ -50,11 +50,9 @@ void AControllableCharacter::SetupPlayerInputComponent(UInputComponent * PlayerI
 void AControllableCharacter::MoveForward(float AxisValue)
 {
 	MoveDirection.X = AxisValue;
-	//AddMovementInput(GetActorForwardVector() * AxisValue);
 }
 
 void AControllableCharacter::MoveRight(float AxisValue)
 {
 	MoveDirection.Y = AxisValue;
-	//AddMovementInput(GetActorRightVector() * AxisValue);
 }
