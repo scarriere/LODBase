@@ -28,6 +28,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 	void StartCombat(FVector CombatCenter);
 	void StopCombat();
 	ACombatAIController* GetCombatController();

@@ -7,12 +7,17 @@
 #include "GameFramework/Controller.h"
 #include "BaseCharacter.h"
 #include "CombatAIController.h"
+#include "Camera/CameraComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ACombatOrchestrator::ACombatOrchestrator()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+
+	CombatCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Combat Camera"));
+	RootComponent->SetupAttachment(RootComponent);
 }
 
 void ACombatOrchestrator::BeginPlay()
@@ -23,6 +28,11 @@ void ACombatOrchestrator::BeginPlay()
 
 	PlayerCharacter->StartCombat(CombatCenter);
 	EnemyCharacter->StartCombat(CombatCenter);
+
+	// Weird bug where the target get unset when unpossses is called
+	GetWorld()->GetFirstPlayerController()->SetViewTarget(PlayerCharacter);
+	//TODO: setup combat camera
+	//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 1.f);
 
 	// TODO: Wait for combat ready (might have animation)
 	PlayerCharacter->GetCombatController()->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
@@ -46,6 +56,10 @@ void ACombatOrchestrator::Initialize(ABaseCharacter* APlayerCharacter, ABaseChar
 	EnemyCharacter = AEnemyCharacter;
 
 	CombatCenter = FMath::Lerp(PlayerCharacter->GetActorLocation(), EnemyCharacter->GetActorLocation(), .5f);
+
+	CombatCamera->SetWorldLocation(CombatCenter + FVector(0.f, 0.f, 500.f));
+	FRotator CameraRotation = UKismetMathLibrary::FindLookAtRotation(CombatCamera->GetComponentLocation(), CombatCenter);
+	CombatCamera->SetWorldRotation(CameraRotation);
 }
 
 void ACombatOrchestrator::EndCurrentTurn()
@@ -58,11 +72,16 @@ void ACombatOrchestrator::EndCurrentTurn()
 	}
 	else
 	{
+		//TODO: setup combat camera
+		//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(PlayerCharacter, 1.f);
+
 		PlayerCharacter->StopCombat();
 		EnemyCharacter->StopCombat();
 
+		GetWorld()->DestroyActor(EnemyCharacter);
 		GetWorld()->DestroyActor(this);
+
 		//IsPlayerTurn = true;
-		//PlayerController->StartTurn();
+		//PlayerCharacter->GetCombatController()->StartTurn(EnemyCharacter);
 	}
 }

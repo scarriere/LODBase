@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "CombatOrchestrator.generated.h"
 
 class ABaseCharacter;
+class UCameraComponent;
 
 UCLASS()
-class LODBASE_API ACombatOrchestrator : public AActor
+class LODBASE_API ACombatOrchestrator : public APawn
 {
 	GENERATED_BODY()
 	
@@ -22,6 +23,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	FVector CombatCenter;
+
+	UPROPERTY(VisibleAnywhere)
+	UCameraComponent* CombatCamera = nullptr;
 
 	UFUNCTION()
 	void EndCurrentTurn();

@@ -17,6 +17,13 @@ void ABaseCharacter::BeginPlay()
 	CombatController = GetWorld()->SpawnActor<ACombatAIController>(CombatControllerType);
 }
 
+void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	GetWorld()->DestroyActor(CombatController);
+}
+
 void ABaseCharacter::StartCombat(FVector CombatCenter)
 {
 	DefaultController->StopMovement();

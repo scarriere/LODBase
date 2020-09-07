@@ -10,11 +10,14 @@
 ABasePlayerController::ABasePlayerController()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bAutoManageActiveCameraTarget = false;
 }
 
 void ABasePlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetViewTarget(GetCharacter());
 
 	InputComponent->BindAxis(TEXT("MoveForward"), this, &ABasePlayerController::MoveForward);
 	InputComponent->BindAxis(TEXT("MoveRight"), this, &ABasePlayerController::MoveRight);

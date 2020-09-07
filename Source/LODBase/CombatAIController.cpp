@@ -35,5 +35,5 @@ void ACombatAIController::StartTurn(APawn* Target)
 	UE_LOG(LogTemp, Warning, TEXT("AI Turn Start for Pawn %s attacking %s"), *GetPawn()->GetName(), *Target->GetName())
 	CombatStep = CombatStep::MOVE_TO_TARGET;
 	SetFocus(Target);
-	MoveToActor(Target, 20.f);
+	MoveToActor(Target, 10.f);
 }
