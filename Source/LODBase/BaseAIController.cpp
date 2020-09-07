@@ -5,6 +5,7 @@
 #include "NavigationSystem.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "BaseCharacter.h"
 
 ABaseAIController::ABaseAIController()
 {
@@ -18,6 +19,11 @@ void ABaseAIController::BeginPlay()
 	InitialLocation = GetPawn()->GetActorLocation();
 
 	GetWorld()->GetTimerManager().SetTimer(WanderTimeHandle, this, &ABaseAIController::Wander, WanderInterval, true);
+}
+
+void ABaseAIController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
 void ABaseAIController::Wander()
@@ -39,10 +45,4 @@ void ABaseAIController::SeePlayer(AActor * Player)
 	UE_LOG(LogTemp, Warning, TEXT("Player Became Visible"))
 	GetWorldTimerManager().ClearTimer(WanderTimeHandle);
 	MoveToActor(Player);
-}
-
-void ABaseAIController::StartCombat()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Player is in Combat Reach"))
-	StopMovement();
 }

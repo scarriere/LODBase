@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "TurnState.h"
 #include "BaseAIController.generated.h"
 
 UCLASS()
@@ -33,9 +34,8 @@ protected:
 	void Wander();
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void SeePlayer(AActor * Player);
+	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	void StartCombat();
+	void SeePlayer(AActor * Player);
 };

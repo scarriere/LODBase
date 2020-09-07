@@ -2,33 +2,37 @@
 
 
 #include "BaseCharacter.h"
+#include "CombatAIController.h"
 
-// Sets default values
 ABaseCharacter::ABaseCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
-// Called when the game starts or when spawned
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	DefaultController = GetController();
+	CombatController = GetWorld()->SpawnActor<ACombatAIController>(CombatControllerType);
 }
 
-// Called every frame
-void ABaseCharacter::Tick(float DeltaTime)
+void ABaseCharacter::StartCombat(FVector CombatCenter)
 {
-	Super::Tick(DeltaTime);
-
+	DefaultController->StopMovement();
+	DefaultController->UnPossess();
+	CombatController->Possess(this);
+	CombatController->StartCombat(CombatCenter);
 }
 
-// Called to bind functionality to input
-void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void ABaseCharacter::StopCombat()
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	CombatController->StopMovement();
+	CombatController->UnPossess();
+	DefaultController->Possess(this);
 }
 
+ACombatAIController * ABaseCharacter::GetCombatController()
+{
+	return CombatController;
+}

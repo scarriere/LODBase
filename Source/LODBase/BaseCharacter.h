@@ -6,24 +6,29 @@
 #include "GameFramework/Character.h"
 #include "BaseCharacter.generated.h"
 
+class ACombatAIController;
+
 UCLASS()
 class LODBASE_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	ABaseCharacter();
 
+private:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACombatAIController> CombatControllerType;
+
+	ACombatAIController* CombatController;
+
+	AController* DefaultController = nullptr;
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+public:
+	void StartCombat(FVector CombatCenter);
+	void StopCombat();
+	ACombatAIController* GetCombatController();
 };

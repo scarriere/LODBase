@@ -4,8 +4,11 @@
 #include "EnemyCharacter.h"
 
 #include "Components/SphereComponent.h"
-#include "ControllableCharacter.h"
 #include "BaseAIController.h"
+#include "BasePlayerController.h"
+#include "ControllableCharacter.h"
+#include "CombatOrchestrator.h"
+#include "Kismet/GameplayStatics.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -37,6 +40,7 @@ void AEnemyCharacter::BeginPlay()
 void AEnemyCharacter::OnVisibilityOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (AIController == nullptr) return;
+
 	if (Cast<AControllableCharacter>(OtherActor))
 	{
 		AIController->SeePlayer(OtherActor);
@@ -45,9 +49,17 @@ void AEnemyCharacter::OnVisibilityOverlap(UPrimitiveComponent * OverlappedCompon
 
 void AEnemyCharacter::OnCombatOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	if (AIController == nullptr) return;
-	if (Cast<AControllableCharacter>(OtherActor))
+	AControllableCharacter* OtherCharacter =  Cast<AControllableCharacter>(OtherActor);
+	if (OtherCharacter == nullptr) return;
+
+	if (UGameplayStatics::GetActorOfClass(GetWorld(), ACombatOrchestrator::StaticClass()) == nullptr)
 	{
-		AIController->StartCombat();
+		ACombatOrchestrator* CombatOrchestrator = GetWorld()->SpawnActorDeferred<ACombatOrchestrator>(ACombatOrchestrator::StaticClass(), GetActorTransform());
+		CombatOrchestrator->Initialize(OtherCharacter, this);
+		CombatOrchestrator->FinishSpawning(GetActorTransform());
+	}
+	else 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Enemy interfere with combat"))
 	}
 }
