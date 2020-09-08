@@ -4,7 +4,7 @@
 #include "EnemyCharacter.h"
 
 #include "Components/SphereComponent.h"
-#include "BaseAIController.h"
+#include "EnemyAIController.h"
 #include "BasePlayerController.h"
 #include "ControllableCharacter.h"
 #include "CombatOrchestrator.h"
@@ -27,7 +27,7 @@ void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AIController = GetController<ABaseAIController>();
+	AIController = GetController<AEnemyAIController>();
 	if (AIController == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Enemy character needs a BaseAIController"))
@@ -51,6 +51,9 @@ void AEnemyCharacter::OnCombatOverlap(UPrimitiveComponent * OverlappedComponent,
 {
 	AControllableCharacter* OtherCharacter =  Cast<AControllableCharacter>(OtherActor);
 	if (OtherCharacter == nullptr) return;
+
+	VisibilitySphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CombatSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	if (UGameplayStatics::GetActorOfClass(GetWorld(), ACombatOrchestrator::StaticClass()) == nullptr)
 	{

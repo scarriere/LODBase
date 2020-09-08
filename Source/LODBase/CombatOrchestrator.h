@@ -7,6 +7,8 @@
 #include "CombatOrchestrator.generated.h"
 
 class ABaseCharacter;
+class AControllableCharacter;
+class ACombatAIController;
 class UCameraComponent;
 
 UCLASS()
@@ -18,8 +20,8 @@ public:
 	ACombatOrchestrator();
 
 private:
-	ABaseCharacter* PlayerCharacter = nullptr;
-	ABaseCharacter* EnemyCharacter = nullptr;
+	ACombatAIController* PlayerController = nullptr;
+	ACombatAIController* EnemyController = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
 	FVector CombatCenter;
@@ -38,5 +40,5 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	void Initialize(ABaseCharacter* APlayerPawn, ABaseCharacter* AEnemyPawn);
+	void Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter);
 };

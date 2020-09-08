@@ -8,6 +8,8 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class ACombatAIController;
+class ABasePlayerController;
 
 UCLASS()
 class LODBASE_API AControllableCharacter : public ABaseCharacter
@@ -23,6 +25,19 @@ private:
 
 	FVector MoveDirection;
 
+	UPROPERTY(VisibleAnywhere)
+	ACombatAIController* CombatAIController = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	ABasePlayerController* DefaultController = nullptr;
+
 public:
 	AControllableCharacter();
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	void StartCombat();
+	void StopCombat();
 };

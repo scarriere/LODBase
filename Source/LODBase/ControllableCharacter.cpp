@@ -5,6 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "DrawDebugHelpers.h"
+#include "CombatAIController.h"
+#include "BasePlayerController.h"
 
 AControllableCharacter::AControllableCharacter()
 {
@@ -15,4 +17,26 @@ AControllableCharacter::AControllableCharacter()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraArm);
+}
+
+void AControllableCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	DefaultController = Cast<ABasePlayerController>(GetController());
+	CombatAIController = GetWorld()->SpawnActor<ACombatAIController>();
+}
+
+
+void AControllableCharacter::StartCombat()
+{
+	DefaultController->UnPossess();
+	DefaultController->SetViewTarget(this);
+	CombatAIController->Possess(this);
+}
+
+void AControllableCharacter::StopCombat()
+{
+	CombatAIController->UnPossess();
+	DefaultController->Possess(this);
 }

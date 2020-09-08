@@ -8,6 +8,7 @@
 
 enum class CombatStep
 {
+	NOT_IN_COMBAT UMETA(DisplayName = "NotInCombat"),
 	IDLE UMETA(DisplayName = "Idle"),
 	MOVE_TO_TARGET UMETA(DisplayName = "MoveToTarget"),
 	MOVE_TO_START_LOCATION UMETA(DisplayName = "MoveToStartLocation"),
@@ -20,7 +21,9 @@ class LODBASE_API ACombatAIController : public AAIController
 
 private:
 	FVector InitialCombatPosition;
-	CombatStep CombatStep;
+
+protected:
+	CombatStep CombatStep = CombatStep::NOT_IN_COMBAT;
 
 public:
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;

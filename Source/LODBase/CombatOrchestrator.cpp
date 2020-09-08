@@ -7,6 +7,7 @@
 #include "GameFramework/Controller.h"
 #include "BaseCharacter.h"
 #include "CombatAIController.h"
+#include "ControllableCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -24,23 +25,23 @@ void ACombatOrchestrator::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (PlayerCharacter == nullptr || EnemyCharacter == nullptr) return;
+	if (PlayerController == nullptr || EnemyController == nullptr) return;
 
-	PlayerCharacter->StartCombat(CombatCenter);
-	EnemyCharacter->StartCombat(CombatCenter);
+	PlayerController->StartCombat(CombatCenter);
+	EnemyController->StartCombat(CombatCenter);
 
 	// Weird bug where the target get unset when unpossses is called
-	GetWorld()->GetFirstPlayerController()->SetViewTarget(PlayerCharacter);
+	//GetWorld()->GetFirstPlayerController()->SetViewTarget(PlayerCharacter);
 	//TODO: setup combat camera
 	//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 1.f);
 
 	// TODO: Wait for combat ready (might have animation)
-	PlayerCharacter->GetCombatController()->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
-	EnemyCharacter->GetCombatController()->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+	PlayerController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+	EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
 
 	//TODO: find order of combat
 	//EnemyCharacter->GetCombatController()->StartTurn(PlayerCharacter);
-	PlayerCharacter->GetCombatController()->StartTurn(EnemyCharacter);
+	PlayerController->StartTurn(EnemyController->GetCharacter());
 }
 
 void ACombatOrchestrator::Tick(float DeltaTime)
@@ -48,12 +49,14 @@ void ACombatOrchestrator::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ACombatOrchestrator::Initialize(ABaseCharacter* APlayerCharacter, ABaseCharacter* AEnemyCharacter)
+void ACombatOrchestrator::Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter)
 {
-	if (APlayerCharacter == nullptr || AEnemyCharacter == nullptr) return;
+	if (PlayerCharacter == nullptr || EnemyCharacter == nullptr) return;
 
-	PlayerCharacter = APlayerCharacter;
-	EnemyCharacter = AEnemyCharacter;
+	PlayerCharacter->StartCombat();
+
+	PlayerController = Cast<ACombatAIController>(PlayerCharacter->GetController());
+	EnemyController = Cast<ACombatAIController>(EnemyCharacter->GetController());
 
 	CombatCenter = FMath::Lerp(PlayerCharacter->GetActorLocation(), EnemyCharacter->GetActorLocation(), .5f);
 
@@ -68,17 +71,17 @@ void ACombatOrchestrator::EndCurrentTurn()
 	if (IsPlayerTurn)
 	{
 		IsPlayerTurn = false;
-		EnemyCharacter->GetCombatController()->StartTurn(PlayerCharacter);
+		EnemyController->StartTurn(PlayerController->GetCharacter());
 	}
 	else
 	{
 		//TODO: setup combat camera
 		//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(PlayerCharacter, 1.f);
 
+		AControllableCharacter* PlayerCharacter = Cast<AControllableCharacter>(PlayerController->GetCharacter());
 		PlayerCharacter->StopCombat();
-		EnemyCharacter->StopCombat();
 
-		GetWorld()->DestroyActor(EnemyCharacter);
+		GetWorld()->DestroyActor(EnemyController->GetCharacter());
 		GetWorld()->DestroyActor(this);
 
 		//IsPlayerTurn = true;

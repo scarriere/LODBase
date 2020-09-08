@@ -16,20 +16,6 @@ class LODBASE_API ABaseCharacter : public ACharacter
 public:
 	ABaseCharacter();
 
-private:
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<ACombatAIController> CombatControllerType;
-
-	ACombatAIController* CombatController;
-
-	AController* DefaultController = nullptr;
-
 protected:
 	virtual void BeginPlay() override;
-
-public:
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
-	void StartCombat(FVector CombatCenter);
-	void StopCombat();
-	ACombatAIController* GetCombatController();
 };

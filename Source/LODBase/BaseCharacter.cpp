@@ -12,34 +12,4 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	DefaultController = GetController();
-	CombatController = GetWorld()->SpawnActor<ACombatAIController>(CombatControllerType);
-}
-
-void ABaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-
-	GetWorld()->DestroyActor(CombatController);
-}
-
-void ABaseCharacter::StartCombat(FVector CombatCenter)
-{
-	DefaultController->StopMovement();
-	DefaultController->UnPossess();
-	CombatController->Possess(this);
-	CombatController->StartCombat(CombatCenter);
-}
-
-void ABaseCharacter::StopCombat()
-{
-	CombatController->StopMovement();
-	CombatController->UnPossess();
-	DefaultController->Possess(this);
-}
-
-ACombatAIController * ABaseCharacter::GetCombatController()
-{
-	return CombatController;
 }

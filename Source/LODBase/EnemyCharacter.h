@@ -7,7 +7,7 @@
 #include "EnemyCharacter.generated.h"
 
 class USphereComponent;
-class ABaseAIController;
+class AEnemyAIController;
 
 UCLASS()
 class LODBASE_API AEnemyCharacter : public ABaseCharacter
@@ -21,7 +21,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	ABaseAIController* AIController = nullptr;
+	AEnemyAIController* AIController = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	USphereComponent* VisibilitySphere;
