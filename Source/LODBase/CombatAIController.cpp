@@ -11,8 +11,7 @@ void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 
 	if (CombatStep == CombatStep::MOVE_TO_TARGET && Result.IsSuccess())
 	{
-		CombatStep = CombatStep::MOVE_TO_START_LOCATION;
-		MoveToLocation(InitialCombatPosition, .1f);
+		Attack();
 	}
 	else if (CombatStep == CombatStep::MOVE_TO_START_LOCATION && Result.IsSuccess())
 	{
@@ -36,4 +35,42 @@ void ACombatAIController::StartTurn(APawn* Target)
 	CombatStep = CombatStep::MOVE_TO_TARGET;
 	SetFocus(Target);
 	MoveToActor(Target, 10.f);
+}
+
+//TODO: should be moved into the 
+void ACombatAIController::NotifyComboBegin(float TotalDuration)
+{
+	ComboDuration = TotalDuration;
+	ComboStartTime = GetWorld()->GetRealTimeSeconds();
+}
+
+void ACombatAIController::NotifyComboEnd()
+{
+	float TimeLeft = ComboStartTime + ComboDuration - GetWorld()->GetRealTimeSeconds();
+	UE_LOG(LogTemp, Warning, TEXT("Combo end with timeleft %f"), TimeLeft)
+}
+
+void ACombatAIController::AttackKeyPressed()
+{
+	if ((GetWorld()->GetRealTimeSeconds() - ComboStartTime) / ComboDuration > .9f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Combo success"))
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Combo Failed"))
+	}
+}
+
+void ACombatAIController::CompleteAttack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Complete Attack"));
+	CombatStep = CombatStep::MOVE_TO_START_LOCATION;
+	MoveToLocation(InitialCombatPosition, .1f);
+}
+
+void ACombatAIController::Attack_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Base Attack"));
+	CompleteAttack();
 }

@@ -10,6 +10,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class ACombatAIController;
 class ABasePlayerController;
+class UCombatWidget;
 
 UCLASS()
 class LODBASE_API AControllableCharacter : public ABaseCharacter
@@ -25,11 +26,19 @@ private:
 
 	FVector MoveDirection;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ACombatAIController> CombatAIControllerType;
+
 	UPROPERTY(VisibleAnywhere)
 	ACombatAIController* CombatAIController = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
 	ABasePlayerController* DefaultController = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	UCombatWidget* CurrentAttackWidget;
+
+	float ComboStartTime = 0.f;
 
 public:
 	AControllableCharacter();
@@ -38,6 +47,12 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	void StartCombat();
+	virtual void Tick(float DeltaTime) override;
+
+	void StartCombat(APawn* Orchestractor);
 	void StopCombat();
+
+	void NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType);
+	void UpdateAttackWidget();
+	void NotifyComboEnd();
 };

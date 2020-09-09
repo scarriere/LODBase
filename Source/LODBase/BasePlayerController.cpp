@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "BaseCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "CombatOrchestrator.h"
 
 ABasePlayerController::ABasePlayerController()
 {
@@ -36,8 +37,17 @@ void ABasePlayerController::MoveRight(float AxisValue)
 
 void ABasePlayerController::Jump()
 {
-	if (GetCharacter() == nullptr) return;
-	GetCharacter()->Jump();
+	if (GetCharacter() == nullptr)
+	{
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator == nullptr) return;
+
+		Orchestrator->AttackKeyPressed();
+	}
+	else
+	{
+		GetCharacter()->Jump();
+	}
 }
 
 void ABasePlayerController::Tick(float DeltaTime)

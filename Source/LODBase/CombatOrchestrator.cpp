@@ -30,8 +30,6 @@ void ACombatOrchestrator::BeginPlay()
 	PlayerController->StartCombat(CombatCenter);
 	EnemyController->StartCombat(CombatCenter);
 
-	// Weird bug where the target get unset when unpossses is called
-	//GetWorld()->GetFirstPlayerController()->SetViewTarget(PlayerCharacter);
 	//TODO: setup combat camera
 	//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 1.f);
 
@@ -40,7 +38,6 @@ void ACombatOrchestrator::BeginPlay()
 	EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
 
 	//TODO: find order of combat
-	//EnemyCharacter->GetCombatController()->StartTurn(PlayerCharacter);
 	PlayerController->StartTurn(EnemyController->GetCharacter());
 }
 
@@ -53,7 +50,7 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* PlayerCharacter, AB
 {
 	if (PlayerCharacter == nullptr || EnemyCharacter == nullptr) return;
 
-	PlayerCharacter->StartCombat();
+	PlayerCharacter->StartCombat(this);
 
 	PlayerController = Cast<ACombatAIController>(PlayerCharacter->GetController());
 	EnemyController = Cast<ACombatAIController>(EnemyCharacter->GetController());
@@ -78,13 +75,22 @@ void ACombatOrchestrator::EndCurrentTurn()
 		//TODO: setup combat camera
 		//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(PlayerCharacter, 1.f);
 
-		AControllableCharacter* PlayerCharacter = Cast<AControllableCharacter>(PlayerController->GetCharacter());
-		PlayerCharacter->StopCombat();
+		//AControllableCharacter* PlayerCharacter = Cast<AControllableCharacter>(PlayerController->GetCharacter());
+		//PlayerCharacter->StopCombat();
 
-		GetWorld()->DestroyActor(EnemyController->GetCharacter());
-		GetWorld()->DestroyActor(this);
+		//GetWorld()->DestroyActor(EnemyController->GetCharacter());
+		//GetWorld()->DestroyActor(this);
 
-		//IsPlayerTurn = true;
-		//PlayerCharacter->GetCombatController()->StartTurn(EnemyCharacter);
+		//TODO implement health system
+		IsPlayerTurn = true;
+		PlayerController->StartTurn(EnemyController->GetCharacter());
+	}
+}
+
+void ACombatOrchestrator::AttackKeyPressed()
+{
+	if (IsPlayerTurn)
+	{
+		PlayerController->AttackKeyPressed();
 	}
 }
