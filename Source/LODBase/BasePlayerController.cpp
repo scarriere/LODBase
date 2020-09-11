@@ -7,6 +7,7 @@
 #include "BaseCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "CombatOrchestrator.h"
+#include "CombatWidget.h"
 
 ABasePlayerController::ABasePlayerController()
 {
@@ -22,7 +23,9 @@ void ABasePlayerController::BeginPlay()
 
 	InputComponent->BindAxis(TEXT("MoveForward"), this, &ABasePlayerController::MoveForward);
 	InputComponent->BindAxis(TEXT("MoveRight"), this, &ABasePlayerController::MoveRight);
+
 	InputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ABasePlayerController::Jump);
+	InputComponent->BindAction(TEXT("AttackRight"), IE_Pressed, this, &ABasePlayerController::AttackRight);
 }
 
 void ABasePlayerController::MoveForward(float AxisValue)
@@ -35,24 +38,61 @@ void ABasePlayerController::MoveRight(float AxisValue)
 	MoveDirection.Y = AxisValue;
 }
 
+void ABasePlayerController::AttackRight()
+{
+	UE_LOG(LogTemp, Warning, TEXT("AttackRight()"))
+	if (IsInCombo)
+	{
+		AttackKeyPressed();
+	}
+}
+
 void ABasePlayerController::Jump()
 {
-	if (GetCharacter() == nullptr)
+	UE_LOG(LogTemp, Warning, TEXT("Jump()"))
+	if (GetCharacter() != nullptr)
 	{
-		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
-		if (Orchestrator == nullptr) return;
+		GetCharacter()->Jump();
+	}
+}
 
-		Orchestrator->AttackKeyPressed();
+void ABasePlayerController::AttackKeyPressed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("AttackKeyPressed()"))
+	IsInCombo = false;
+	if (CurrentAttackWidget)
+	{
+		CurrentAttackWidget->RemoveFromViewport();
+	}
+
+	if ((GetWorld()->GetRealTimeSeconds() - ComboStartTime) / ComboDuration > ComboPrecision)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Combo success"))
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			Orchestrator->ComboSucceed();
+		}
 	}
 	else
 	{
-		GetCharacter()->Jump();
+		UE_LOG(LogTemp, Warning, TEXT("Combo Failed"))
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			Orchestrator->ComboMiss();
+		}
 	}
 }
 
 void ABasePlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (IsInCombo)
+	{
+		UpdateAttackWidget();
+	}
 
 	if (GetCharacter() == nullptr) return;
 
@@ -64,5 +104,54 @@ void ABasePlayerController::Tick(float DeltaTime)
 	else
 	{
 		SetControlRotation(GetCharacter()->GetActorRotation());
+	}
+}
+
+void ABasePlayerController::NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType)
+{
+	UE_LOG(LogTemp, Warning, TEXT("NotifyComboStart()"))
+	ComboDuration = TotalDuration;
+	ComboStartTime = GetWorld()->GetRealTimeSeconds();
+	IsInCombo = true;
+
+	if (CombatWidgetMap.Contains(WidgetType))
+	{
+		CurrentAttackWidget = CombatWidgetMap[WidgetType];
+	}
+	else
+	{
+		CurrentAttackWidget = CombatWidgetMap.Add(WidgetType, CreateWidget<UCombatWidget>(this, WidgetType));
+	}
+
+	if (CurrentAttackWidget)
+	{
+		CurrentAttackWidget->ResetWidget(TotalDuration);
+		CurrentAttackWidget->AddToViewport();
+	}
+}
+
+void ABasePlayerController::UpdateAttackWidget()
+{
+	if (CurrentAttackWidget)
+	{
+		CurrentAttackWidget->UpdateElapseTime(GetWorld()->GetRealTimeSeconds() - ComboStartTime);
+	}
+}
+
+void ABasePlayerController::NotifyComboEnd()
+{
+	UE_LOG(LogTemp, Warning, TEXT("NotifyComboEnd()"))
+	if (IsInCombo)
+	{
+		IsInCombo = false;
+		if (CurrentAttackWidget)
+		{
+			CurrentAttackWidget->RemoveFromViewport();
+		}
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			Orchestrator->ComboMiss();
+		}
 	}
 }

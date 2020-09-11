@@ -16,6 +16,16 @@ class LODBASE_API ABaseCharacter : public ACharacter
 public:
 	ABaseCharacter();
 
+private:
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* FlinchAnimation;
+
 protected:
 	virtual void BeginPlay() override;
+
+public:
+	float Flinch();
+
+	UFUNCTION(BlueprintCallable)
+	UAnimMontage* GetFlinchAnimation();
 };

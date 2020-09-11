@@ -24,8 +24,6 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UCameraComponent* Camera;
 
-	FVector MoveDirection;
-
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ACombatAIController> CombatAIControllerType;
 
@@ -35,11 +33,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	ABasePlayerController* DefaultController = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
-	UCombatWidget* CurrentAttackWidget;
-
-	float ComboStartTime = 0.f;
-
 public:
 	AControllableCharacter();
 
@@ -47,12 +40,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
-
 	void StartCombat(APawn* Orchestractor);
 	void StopCombat();
 
-	void NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType);
-	void UpdateAttackWidget();
-	void NotifyComboEnd();
+	ABasePlayerController* GetDefaultController();
 };

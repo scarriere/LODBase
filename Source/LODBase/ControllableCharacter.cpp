@@ -7,7 +7,6 @@
 #include "DrawDebugHelpers.h"
 #include "CombatAIController.h"
 #include "BasePlayerController.h"
-#include "CombatWidget.h"
 
 AControllableCharacter::AControllableCharacter()
 {
@@ -28,14 +27,6 @@ void AControllableCharacter::BeginPlay()
 	CombatAIController = GetWorld()->SpawnActor<ACombatAIController>(CombatAIControllerType);
 }
 
-void AControllableCharacter::Tick(float DeltaTime)
-{
-	if (CurrentAttackWidget)
-	{
-		CurrentAttackWidget->UpdateElapseTime(GetWorld()->GetRealTimeSeconds() - ComboStartTime);
-	}
-}
-
 void AControllableCharacter::StartCombat(APawn* Orchestractor)
 {
 	DefaultController->UnPossess();
@@ -50,29 +41,7 @@ void AControllableCharacter::StopCombat()
 	DefaultController->Possess(this);
 }
 
-void AControllableCharacter::NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType)
+ABasePlayerController* AControllableCharacter::GetDefaultController()
 {
-	CombatAIController->NotifyComboBegin(TotalDuration);
-	ComboStartTime = GetWorld()->GetRealTimeSeconds();
-
-	if (CurrentAttackWidget == nullptr)
-	{
-		CurrentAttackWidget = CreateWidget<UCombatWidget>(DefaultController, WidgetType);
-	}
-
-	if (CurrentAttackWidget)
-	{
-		CurrentAttackWidget->ResetWidget(TotalDuration);
-		CurrentAttackWidget->AddToViewport();
-	}
-}
-
-void AControllableCharacter::NotifyComboEnd()
-{
-	CombatAIController->NotifyComboEnd();
-
-	if (CurrentAttackWidget)
-	{
-		CurrentAttackWidget->RemoveFromViewport();
-	}
+	return DefaultController;
 }

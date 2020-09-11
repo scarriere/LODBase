@@ -62,12 +62,27 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* PlayerCharacter, AB
 	CombatCamera->SetWorldRotation(CameraRotation);
 }
 
+bool ACombatOrchestrator::IsPlayerTurn()
+{
+	return bIsPlayerTurn;
+}
+
+void ACombatOrchestrator::ComboMiss()
+{
+	PlayerController->ComboFail();
+}
+
+void ACombatOrchestrator::ComboSucceed()
+{
+	//TODO apply damage to target
+}
+
 void ACombatOrchestrator::EndCurrentTurn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Turn End"))
-	if (IsPlayerTurn)
+	if (bIsPlayerTurn)
 	{
-		IsPlayerTurn = false;
+		bIsPlayerTurn = false;
 		EnemyController->StartTurn(PlayerController->GetCharacter());
 	}
 	else
@@ -82,15 +97,7 @@ void ACombatOrchestrator::EndCurrentTurn()
 		//GetWorld()->DestroyActor(this);
 
 		//TODO implement health system
-		IsPlayerTurn = true;
+		bIsPlayerTurn = true;
 		PlayerController->StartTurn(EnemyController->GetCharacter());
-	}
-}
-
-void ACombatOrchestrator::AttackKeyPressed()
-{
-	if (IsPlayerTurn)
-	{
-		PlayerController->AttackKeyPressed();
 	}
 }

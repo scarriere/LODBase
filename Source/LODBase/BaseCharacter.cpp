@@ -3,6 +3,7 @@
 
 #include "BaseCharacter.h"
 #include "CombatAIController.h"
+#include "Animation/AnimMontage.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -12,4 +13,14 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+float ABaseCharacter::Flinch()
+{
+	return PlayAnimMontage(FlinchAnimation);
+}
+
+UAnimMontage * ABaseCharacter::GetFlinchAnimation()
+{
+	return FlinchAnimation;
 }

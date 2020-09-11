@@ -22,9 +22,6 @@ class LODBASE_API ACombatAIController : public AAIController
 private:
 	FVector InitialCombatPosition;
 
-	float ComboDuration = 0.f;
-	float ComboStartTime = 0.f;
-
 protected:
 	CombatStep CombatStep = CombatStep::NOT_IN_COMBAT;
 
@@ -34,15 +31,16 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void Attack();
 
-	void NotifyComboBegin(float TotalDuration);
-	void NotifyComboEnd();
-	void AttackKeyPressed();
+	UFUNCTION(BlueprintNativeEvent)
+	void FailAttack();
 
 	UFUNCTION(BlueprintCallable)
 	void CompleteAttack();
 
 	void StartCombat(FVector CombatCenter);
 	void StartTurn(APawn* Target);
+
+	void ComboFail();
 
 	DECLARE_DELEGATE(EndTurn)
 	EndTurn EndTurnFunc;

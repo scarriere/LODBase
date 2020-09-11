@@ -32,7 +32,7 @@ private:
 	UFUNCTION()
 	void EndCurrentTurn();
 
-	bool IsPlayerTurn = true;
+	bool bIsPlayerTurn = true;
 
 protected:
 	virtual void BeginPlay() override;
@@ -42,6 +42,7 @@ public:
 
 	void Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter);
 
-	UFUNCTION()
-	void AttackKeyPressed();
+	bool IsPlayerTurn();
+	void ComboMiss();
+	void ComboSucceed();
 };

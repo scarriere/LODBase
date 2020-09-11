@@ -4,13 +4,14 @@
 #include "AttackNotifyState.h"
 #include "CombatAIController.h"
 #include "ControllableCharacter.h"
+#include "BasePlayerController.h"
 
 void UAttackNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
 {
 	AControllableCharacter* Character = Cast<AControllableCharacter>(MeshComp->GetOwner());
 	if (Character == nullptr) return;
 
-	Character->NotifyComboStart(TotalDuration, WidgetType);
+	Character->GetDefaultController()->NotifyComboStart(TotalDuration, WidgetType);
 }
 
 void UAttackNotifyState::NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation)
@@ -18,5 +19,5 @@ void UAttackNotifyState::NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSeque
 	AControllableCharacter* Character = Cast<AControllableCharacter>(MeshComp->GetOwner());
 	if (Character == nullptr) return;
 
-	Character->NotifyComboEnd();
+	Character->GetDefaultController()->NotifyComboEnd();
 }

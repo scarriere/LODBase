@@ -2,6 +2,7 @@
 
 
 #include "CombatAIController.h"
+#include "BaseCharacter.h"
 
 void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult & Result)
 {
@@ -37,29 +38,13 @@ void ACombatAIController::StartTurn(APawn* Target)
 	MoveToActor(Target, 10.f);
 }
 
-//TODO: should be moved into the 
-void ACombatAIController::NotifyComboBegin(float TotalDuration)
+void ACombatAIController::ComboFail()
 {
-	ComboDuration = TotalDuration;
-	ComboStartTime = GetWorld()->GetRealTimeSeconds();
-}
-
-void ACombatAIController::NotifyComboEnd()
-{
-	float TimeLeft = ComboStartTime + ComboDuration - GetWorld()->GetRealTimeSeconds();
-	UE_LOG(LogTemp, Warning, TEXT("Combo end with timeleft %f"), TimeLeft)
-}
-
-void ACombatAIController::AttackKeyPressed()
-{
-	if ((GetWorld()->GetRealTimeSeconds() - ComboStartTime) / ComboDuration > .9f)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Combo success"))
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Combo Failed"))
-	}
+	FailAttack();
+	//GetCharacter()->StopAnimMontage();
+	//ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(GetCharacter());
+	//float montage = BaseCharacter->Flinch();
+	//CompleteAttack();
 }
 
 void ACombatAIController::CompleteAttack()
@@ -72,5 +57,11 @@ void ACombatAIController::CompleteAttack()
 void ACombatAIController::Attack_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Base Attack"));
+	CompleteAttack();
+}
+
+void ACombatAIController::FailAttack_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Base Fail Attack"));
 	CompleteAttack();
 }
