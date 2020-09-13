@@ -21,6 +21,7 @@ class LODBASE_API ACombatAIController : public AAIController
 
 private:
 	FVector InitialCombatPosition;
+	APawn* CurrentTarget = nullptr;
 
 protected:
 	CombatStep CombatStep = CombatStep::NOT_IN_COMBAT;
@@ -37,10 +38,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CompleteAttack();
 
-	void StartCombat(FVector CombatCenter);
+	void StartCombat(APawn* Target);
 	void StartTurn(APawn* Target);
 
 	void ComboFail();
+	void ComboSucceed();
+	void HitTarget();
 
 	DECLARE_DELEGATE(EndTurn)
 	EndTurn EndTurnFunc;

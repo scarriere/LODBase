@@ -29,8 +29,13 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CombatCamera = nullptr;
 
+	UPROPERTY(EditAnywhere)
+	float TurnWaitTime = 5.f;
+
 	UFUNCTION()
 	void EndCurrentTurn();
+
+	void EndCombat(bool PlayerWon);
 
 	bool bIsPlayerTurn = true;
 

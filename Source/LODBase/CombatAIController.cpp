@@ -3,6 +3,7 @@
 
 #include "CombatAIController.h"
 #include "BaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult & Result)
 {
@@ -22,11 +23,11 @@ void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 	}
 }
 
-void ACombatAIController::StartCombat(FVector CombatCenter)
+void ACombatAIController::StartCombat(APawn* Target)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Start Combat"))
 	CombatStep = CombatStep::IDLE;
-	SetFocalPoint(CombatCenter);
+	SetFocus(Target);
 	InitialCombatPosition = GetPawn()->GetActorLocation();
 }
 
@@ -36,15 +37,27 @@ void ACombatAIController::StartTurn(APawn* Target)
 	CombatStep = CombatStep::MOVE_TO_TARGET;
 	SetFocus(Target);
 	MoveToActor(Target, 10.f);
+	CurrentTarget = Target;
 }
 
 void ACombatAIController::ComboFail()
 {
 	FailAttack();
-	//GetCharacter()->StopAnimMontage();
-	//ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(GetCharacter());
-	//float montage = BaseCharacter->Flinch();
-	//CompleteAttack();
+}
+
+void ACombatAIController::ComboSucceed()
+{
+	HitTarget();
+}
+
+void ACombatAIController::HitTarget()
+{
+	if (CurrentTarget)
+	{
+		//TODO: Calculate the damage
+		float Damage = 10.f;
+		UGameplayStatics::ApplyDamage(CurrentTarget, Damage, this, GetCharacter(), nullptr);
+	}
 }
 
 void ACombatAIController::CompleteAttack()

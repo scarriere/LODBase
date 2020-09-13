@@ -27,8 +27,8 @@ void ACombatOrchestrator::BeginPlay()
 
 	if (PlayerController == nullptr || EnemyController == nullptr) return;
 
-	PlayerController->StartCombat(CombatCenter);
-	EnemyController->StartCombat(CombatCenter);
+	PlayerController->StartCombat(EnemyController->GetCharacter());
+	EnemyController->StartCombat(PlayerController->GetCharacter());
 
 	//TODO: setup combat camera
 	//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 1.f);
@@ -74,7 +74,7 @@ void ACombatOrchestrator::ComboMiss()
 
 void ACombatOrchestrator::ComboSucceed()
 {
-	//TODO apply damage to target
+	PlayerController->ComboSucceed();
 }
 
 void ACombatOrchestrator::EndCurrentTurn()
@@ -83,21 +83,42 @@ void ACombatOrchestrator::EndCurrentTurn()
 	if (bIsPlayerTurn)
 	{
 		bIsPlayerTurn = false;
-		EnemyController->StartTurn(PlayerController->GetCharacter());
+		ABaseCharacter* EnemyCharacter = Cast<ABaseCharacter>(EnemyController->GetCharacter());
+		if (EnemyCharacter->IsAlive())
+		{
+			EnemyController->StartTurn(PlayerController->GetCharacter());
+		}
+		else
+		{
+			EndCombat(true);
+		}
 	}
 	else
 	{
-		//TODO: setup combat camera
-		//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(PlayerCharacter, 1.f);
-
-		//AControllableCharacter* PlayerCharacter = Cast<AControllableCharacter>(PlayerController->GetCharacter());
-		//PlayerCharacter->StopCombat();
-
-		//GetWorld()->DestroyActor(EnemyController->GetCharacter());
-		//GetWorld()->DestroyActor(this);
-
-		//TODO implement health system
 		bIsPlayerTurn = true;
-		PlayerController->StartTurn(EnemyController->GetCharacter());
+		ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(PlayerController->GetCharacter());
+		if (PlayerCharacter->IsAlive())
+		{
+			PlayerController->StartTurn(EnemyController->GetCharacter());
+		}
+		else
+		{
+			EndCombat(false);
+		}
+	}
+}
+
+void ACombatOrchestrator::EndCombat(bool PlayerWon)
+{
+	if (PlayerWon)
+	{
+		AControllableCharacter* PlayerCharacter = Cast<AControllableCharacter>(PlayerController->GetCharacter());
+		PlayerCharacter->StopCombat();
+		//GetWorld()->DestroyActor(EnemyController->GetCharacter());
+		GetWorld()->DestroyActor(this);
+	}
+	else
+	{
+		//TODO reset enemy ai to wander
 	}
 }
