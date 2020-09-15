@@ -26,10 +26,14 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MaxHealth = 100.f;
 
+
 	UPROPERTY(VisibleAnywhere)
 	float CurrentHealth;
 
 protected:
+	UPROPERTY(EditAnywhere)
+	bool bOnPlayerSide = false;
+
 	virtual void BeginPlay() override;
 
 public:
@@ -40,6 +44,7 @@ public:
 	float Died();
 
 	bool IsAlive();
+	bool OnPlayerSide();
 
 	UFUNCTION(BlueprintCallable)
 	UAnimMontage* GetFlinchAnimation();

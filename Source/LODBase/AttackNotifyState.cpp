@@ -16,7 +16,7 @@ void UAttackNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 void UAttackNotifyState::NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation)
 {
-	if (GetWorld() == nullptr) return;
+	if (MeshComp->GetWorld() == nullptr) return;
 
 	ABasePlayerController* PlayerController = MeshComp->GetWorld()->GetFirstPlayerController<ABasePlayerController>();
 	if (PlayerController == nullptr) return;

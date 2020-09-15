@@ -42,27 +42,27 @@ void ABasePlayerController::MoveRight(float AxisValue)
 
 void ABasePlayerController::AttackRight()
 {
-	UE_LOG(LogTemp, Warning, TEXT("AttackRight()"))
 	if (IsInCombo)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("AttackRight()"))
 		AttackKeyPressed(TEXT("AttackRight"));
 	}
 }
 
 void ABasePlayerController::AttackLeft()
 {
-	UE_LOG(LogTemp, Warning, TEXT("AttackLeft()"))
 	if (IsInCombo)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("AttackLeft()"))
 		AttackKeyPressed(TEXT("AttackLeft"));
 	}
 }
 
 void ABasePlayerController::Jump()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Jump()"))
 	if (GetCharacter() != nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Jump()"))
 		GetCharacter()->Jump();
 	}
 }

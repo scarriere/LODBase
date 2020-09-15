@@ -26,17 +26,40 @@ void ACombatAIController::StartCombat(APawn* Target)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Start Combat"))
 	CombatStep = CombatStep::IDLE;
-	SetFocus(Target);
+	SetFocus(Target, EAIFocusPriority::Gameplay);
 	InitialCombatPosition = GetPawn()->GetActorLocation();
+	StopMovement();
 }
 
-void ACombatAIController::StartTurn(APawn* Target)
+void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TArray<ABaseCharacter*> EnemyCharacters)
 {
+	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
+	if (ControlledCharacter == nullptr || !ControlledCharacter->IsAlive())
+	{
+		EndTurnFunc.ExecuteIfBound();
+		return;
+	}
+
+	ABaseCharacter* Target = ControlledCharacter->OnPlayerSide() ? FindFirstAliveCharacter(EnemyCharacters) : FindFirstAliveCharacter(PlayerCharacters);
+	if (Target == nullptr) return;
+
 	UE_LOG(LogTemp, Warning, TEXT("AI Turn Start for Pawn %s attacking %s"), *GetPawn()->GetName(), *Target->GetName())
 	CombatStep = CombatStep::MOVE_TO_TARGET;
-	SetFocus(Target);
+	SetFocus(Target, EAIFocusPriority::Gameplay);
 	MoveToActor(Target, 10.f);
 	CurrentTarget = Target;
+}
+
+ABaseCharacter* ACombatAIController::FindFirstAliveCharacter(TArray<ABaseCharacter*> TargetCharacters)
+{
+	for (ABaseCharacter* TargetCharacter : TargetCharacters)
+	{
+		if (TargetCharacter->IsAlive())
+		{
+			return TargetCharacter;
+		}
+	}
+	return nullptr;
 }
 
 void ACombatAIController::ComboFail()

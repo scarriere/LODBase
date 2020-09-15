@@ -14,6 +14,8 @@ enum class CombatStep
 	MOVE_TO_START_LOCATION UMETA(DisplayName = "MoveToStartLocation"),
 };
 
+class ABaseCharacter;
+
 UCLASS()
 class LODBASE_API ACombatAIController : public AAIController
 {
@@ -22,6 +24,8 @@ class LODBASE_API ACombatAIController : public AAIController
 private:
 	FVector InitialCombatPosition;
 	APawn* CurrentTarget = nullptr;
+
+	ABaseCharacter* FindFirstAliveCharacter(TArray<ABaseCharacter*> Characters);
 
 protected:
 	CombatStep CombatStep = CombatStep::NOT_IN_COMBAT;
@@ -39,7 +43,7 @@ public:
 	void CompleteAttack();
 
 	void StartCombat(APawn* Target);
-	void StartTurn(APawn* Target);
+	void StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TArray<ABaseCharacter*> EnemyCharacters);
 
 	void ComboFail();
 	void ComboSucceed();

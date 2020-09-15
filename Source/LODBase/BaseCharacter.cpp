@@ -55,6 +55,11 @@ bool ABaseCharacter::IsAlive()
 	return CurrentHealth > 0;
 }
 
+bool ABaseCharacter::OnPlayerSide()
+{
+	return bOnPlayerSide;
+}
+
 UAnimMontage * ABaseCharacter::GetFlinchAnimation()
 {
 	return FlinchAnimation;

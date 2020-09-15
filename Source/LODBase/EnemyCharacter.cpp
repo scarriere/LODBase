@@ -55,14 +55,17 @@ void AEnemyCharacter::OnCombatOverlap(UPrimitiveComponent * OverlappedComponent,
 	VisibilitySphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CombatSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	if (UGameplayStatics::GetActorOfClass(GetWorld(), ACombatOrchestrator::StaticClass()) == nullptr)
+	ACombatOrchestrator* CombatOrchestrator = Cast<ACombatOrchestrator>(UGameplayStatics::GetActorOfClass(GetWorld(), ACombatOrchestrator::StaticClass()));
+	if (CombatOrchestrator == nullptr)
 	{
-		ACombatOrchestrator* CombatOrchestrator = GetWorld()->SpawnActorDeferred<ACombatOrchestrator>(ACombatOrchestrator::StaticClass(), GetActorTransform());
+		CombatOrchestrator = GetWorld()->SpawnActorDeferred<ACombatOrchestrator>(ACombatOrchestrator::StaticClass(), GetActorTransform());
 		CombatOrchestrator->Initialize(OtherCharacter, this);
 		CombatOrchestrator->FinishSpawning(GetActorTransform());
 	}
-	else 
+	else
 	{
+		//TODO: check for combat center in case player was moving for combo
 		UE_LOG(LogTemp, Warning, TEXT("Enemy interfere with combat"))
+		CombatOrchestrator->AddCharacter(this, bOnPlayerSide);
 	}
 }

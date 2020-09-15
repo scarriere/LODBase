@@ -24,21 +24,14 @@ ACombatOrchestrator::ACombatOrchestrator()
 void ACombatOrchestrator::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (PlayerController == nullptr || EnemyController == nullptr) return;
-
-	PlayerController->StartCombat(EnemyController->GetCharacter());
-	EnemyController->StartCombat(PlayerController->GetCharacter());
+	if (PlayerCharacters[0] == nullptr || EnemyCharacters[0] == nullptr) return;
 
 	//TODO: setup combat camera
 	//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 1.f);
 
-	// TODO: Wait for combat ready (might have animation)
-	PlayerController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
-	EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
-
-	//TODO: find order of combat
-	PlayerController->StartTurn(EnemyController->GetCharacter());
+	TurnQueue.Dequeue(CurrentTurnController);
+	TurnQueue.Enqueue(CurrentTurnController);
+	CurrentTurnController->StartTurn(PlayerCharacters, EnemyCharacters);
 }
 
 void ACombatOrchestrator::Tick(float DeltaTime)
@@ -46,70 +39,91 @@ void ACombatOrchestrator::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ACombatOrchestrator::Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter)
+void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, ABaseCharacter* EnemyCharacter)
 {
-	if (PlayerCharacter == nullptr || EnemyCharacter == nullptr) return;
-
-	PlayerCharacter->StartCombat(this);
-
-	PlayerController = Cast<ACombatAIController>(PlayerCharacter->GetController());
-	EnemyController = Cast<ACombatAIController>(EnemyCharacter->GetController());
+	if (APlayerCharacter == nullptr || EnemyCharacter == nullptr) return;
+	PlayerCharacter = APlayerCharacter;
 
 	CombatCenter = FMath::Lerp(PlayerCharacter->GetActorLocation(), EnemyCharacter->GetActorLocation(), .5f);
-
 	CombatCamera->SetWorldLocation(CombatCenter + FVector(0.f, 0.f, 500.f));
 	FRotator CameraRotation = UKismetMathLibrary::FindLookAtRotation(CombatCamera->GetComponentLocation(), CombatCenter);
 	CombatCamera->SetWorldRotation(CameraRotation);
+
+	PlayerCharacter->StartCombat(this);
+
+	PlayerCharacters.Add(Cast<ABaseCharacter>(PlayerCharacter));
+	EnemyCharacters.Add(Cast<ABaseCharacter>(EnemyCharacter));
+
+	//TODO: find order of combat
+	ACombatAIController* PlayerController = Cast<ACombatAIController>(PlayerCharacter->GetController());
+	PlayerController->StartCombat(EnemyCharacter);
+	PlayerController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+	TurnQueue.Enqueue(PlayerController);
+
+	ACombatAIController* EnemyController = Cast<ACombatAIController>(EnemyCharacter->GetController());
+	EnemyController->StartCombat(PlayerCharacter);
+	EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+	TurnQueue.Enqueue(EnemyController);
+}
+
+void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter, bool bOnPlayerSide)
+{
+	ACombatAIController* NewController = Cast<ACombatAIController>(NewCharacter->GetController());
+	//TODO: focus on non dead character
+	NewController->StartCombat(PlayerCharacters[0]);
+	NewController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+	TurnQueue.Enqueue(NewController);
+
+	if (bOnPlayerSide)
+	{
+		PlayerCharacters.Add(Cast<ABaseCharacter>(NewCharacter));
+	}
+	else
+	{
+		EnemyCharacters.Add(Cast<ABaseCharacter>(NewCharacter));
+	}
 }
 
 ACombatAIController* ACombatOrchestrator::GetCurrentTurnController()
 {
-	if (bIsPlayerTurn)
-	{
-		return PlayerController;
-	}
-	else
-	{
-		return EnemyController;
-	}
+	return CurrentTurnController;
 }
 
 void ACombatOrchestrator::EndCurrentTurn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Turn End"))
-	if (bIsPlayerTurn)
+	if (!HasOneCharacterAlive(PlayerCharacters))
 	{
-		bIsPlayerTurn = false;
-		ABaseCharacter* EnemyCharacter = Cast<ABaseCharacter>(EnemyController->GetCharacter());
-		if (EnemyCharacter->IsAlive())
-		{
-			EnemyController->StartTurn(PlayerController->GetCharacter());
-		}
-		else
-		{
-			EndCombat(true);
-		}
+		EndCombat(false);
+	}
+	else if (!HasOneCharacterAlive(EnemyCharacters))
+	{
+		EndCombat(true);
 	}
 	else
 	{
-		bIsPlayerTurn = true;
-		ABaseCharacter* PlayerCharacter = Cast<ABaseCharacter>(PlayerController->GetCharacter());
-		if (PlayerCharacter->IsAlive())
+		TurnQueue.Dequeue(CurrentTurnController);
+		TurnQueue.Enqueue(CurrentTurnController);
+		CurrentTurnController->StartTurn(PlayerCharacters, EnemyCharacters);
+	}
+}
+
+bool ACombatOrchestrator::HasOneCharacterAlive(TArray<ABaseCharacter*> Characters)
+{
+	for (ABaseCharacter* Character : Characters)
+	{
+		if (Character->IsAlive())
 		{
-			PlayerController->StartTurn(EnemyController->GetCharacter());
-		}
-		else
-		{
-			EndCombat(false);
+			return true;
 		}
 	}
+	return false;
 }
 
 void ACombatOrchestrator::EndCombat(bool PlayerWon)
 {
 	if (PlayerWon)
 	{
-		AControllableCharacter* PlayerCharacter = Cast<AControllableCharacter>(PlayerController->GetCharacter());
 		PlayerCharacter->StopCombat();
 		GetWorld()->DestroyActor(this);
 	}

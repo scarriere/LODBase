@@ -20,8 +20,13 @@ public:
 	ACombatOrchestrator();
 
 private:
-	ACombatAIController* PlayerController = nullptr;
-	ACombatAIController* EnemyController = nullptr;
+	AControllableCharacter* PlayerCharacter = nullptr;
+
+	TQueue<ACombatAIController*> TurnQueue;
+	ACombatAIController* CurrentTurnController = nullptr;
+
+	TArray<ABaseCharacter*> PlayerCharacters;
+	TArray<ABaseCharacter*> EnemyCharacters;
 
 	UPROPERTY(VisibleAnywhere)
 	FVector CombatCenter;
@@ -35,9 +40,8 @@ private:
 	UFUNCTION()
 	void EndCurrentTurn();
 
+	bool HasOneCharacterAlive(TArray<ABaseCharacter*> Characters);
 	void EndCombat(bool PlayerWon);
-
-	bool bIsPlayerTurn = true;
 
 protected:
 	virtual void BeginPlay() override;
@@ -46,6 +50,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter);
+	void AddCharacter(ABaseCharacter* NewCharacter, bool bOnPlayerSide);
 
 	ACombatAIController* GetCurrentTurnController();
 };
