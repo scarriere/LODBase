@@ -40,6 +40,7 @@ float ABaseCharacter::Flinch()
 
 float ABaseCharacter::Died()
 {
+	//TODO: Add timer for the actor to get destroy
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	AAIController* AIController = Cast<AAIController>(GetController());
 	if (AIController)

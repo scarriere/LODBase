@@ -30,8 +30,9 @@ private:
 	float ComboPrecision = .8f;
 	float ComboDuration = 0.f;
 	float ComboStartTime = 0.f;
+	FName ComboAttackAction;
 
-	void AttackKeyPressed();
+	void AttackKeyPressed(FName AttackAction);
 
 protected:
 	virtual void BeginPlay() override;
@@ -40,11 +41,12 @@ protected:
 	void MoveRight(float AxisValue);
 	void Jump();
 	void AttackRight();
+	void AttackLeft();
 
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	void NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType);
+	void NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType, FName AttackAction);
 	void UpdateAttackWidget();
 	void NotifyComboEnd();
 };

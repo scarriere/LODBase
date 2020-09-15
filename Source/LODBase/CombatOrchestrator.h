@@ -47,7 +47,5 @@ public:
 
 	void Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter);
 
-	bool IsPlayerTurn();
-	void ComboMiss();
-	void ComboSucceed();
+	ACombatAIController* GetCurrentTurnController();
 };

@@ -17,7 +17,6 @@ void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 	}
 	else if (CombatStep == CombatStep::MOVE_TO_START_LOCATION && Result.IsSuccess())
 	{
-		//SetFocalPoint(CombatCenter);
 		CombatStep = CombatStep::IDLE;
 		EndTurnFunc.ExecuteIfBound();
 	}

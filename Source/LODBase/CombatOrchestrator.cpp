@@ -62,19 +62,16 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* PlayerCharacter, AB
 	CombatCamera->SetWorldRotation(CameraRotation);
 }
 
-bool ACombatOrchestrator::IsPlayerTurn()
+ACombatAIController* ACombatOrchestrator::GetCurrentTurnController()
 {
-	return bIsPlayerTurn;
-}
-
-void ACombatOrchestrator::ComboMiss()
-{
-	PlayerController->ComboFail();
-}
-
-void ACombatOrchestrator::ComboSucceed()
-{
-	PlayerController->ComboSucceed();
+	if (bIsPlayerTurn)
+	{
+		return PlayerController;
+	}
+	else
+	{
+		return EnemyController;
+	}
 }
 
 void ACombatOrchestrator::EndCurrentTurn()
@@ -114,7 +111,6 @@ void ACombatOrchestrator::EndCombat(bool PlayerWon)
 	{
 		AControllableCharacter* PlayerCharacter = Cast<AControllableCharacter>(PlayerController->GetCharacter());
 		PlayerCharacter->StopCombat();
-		//GetWorld()->DestroyActor(EnemyController->GetCharacter());
 		GetWorld()->DestroyActor(this);
 	}
 	else
