@@ -42,7 +42,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CompleteAttack();
 
-	void StartCombat(APawn* Target);
+	virtual void StartCombat(APawn* Target);
+	virtual void StopCombat();
 	void StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TArray<ABaseCharacter*> EnemyCharacters);
 
 	void ComboFail();

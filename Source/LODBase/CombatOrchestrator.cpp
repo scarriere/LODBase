@@ -52,18 +52,31 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, A
 	PlayerCharacter->StartCombat(this);
 
 	PlayerCharacters.Add(Cast<ABaseCharacter>(PlayerCharacter));
+	for (ABaseCharacter* Ally : PlayerCharacter->GetAllies())
+	{
+		PlayerCharacters.Add(Ally);
+	}
 	EnemyCharacters.Add(Cast<ABaseCharacter>(EnemyCharacter));
+	for (ABaseCharacter* Ally : EnemyCharacter->GetAllies())
+	{
+		EnemyCharacters.Add(Ally);
+	}
 
 	//TODO: find order of combat
-	ACombatAIController* PlayerController = Cast<ACombatAIController>(PlayerCharacter->GetController());
-	PlayerController->StartCombat(EnemyCharacter);
-	PlayerController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
-	TurnQueue.Enqueue(PlayerController);
-
-	ACombatAIController* EnemyController = Cast<ACombatAIController>(EnemyCharacter->GetController());
-	EnemyController->StartCombat(PlayerCharacter);
-	EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
-	TurnQueue.Enqueue(EnemyController);
+	for (ABaseCharacter* Character : PlayerCharacters)
+	{
+		ACombatAIController* PlayerController = Cast<ACombatAIController>(Character->GetController());
+		PlayerController->StartCombat(EnemyCharacter);
+		PlayerController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+		TurnQueue.Enqueue(PlayerController);
+	}
+	for (ABaseCharacter* Character : EnemyCharacters)
+	{
+		ACombatAIController* EnemyController = Cast<ACombatAIController>(Character->GetController());
+		EnemyController->StartCombat(PlayerCharacter);
+		EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+		TurnQueue.Enqueue(EnemyController);
+	}
 }
 
 void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter, bool bOnPlayerSide)
@@ -124,6 +137,11 @@ void ACombatOrchestrator::EndCombat(bool PlayerWon)
 {
 	if (PlayerWon)
 	{
+		for (ABaseCharacter* Character : PlayerCharacters)
+		{
+			ACombatAIController* PlayerController = Cast<ACombatAIController>(Character->GetController());
+			PlayerController->StopCombat();
+		}
 		PlayerCharacter->StopCombat();
 		GetWorld()->DestroyActor(this);
 	}

@@ -28,7 +28,13 @@ void ACombatAIController::StartCombat(APawn* Target)
 	CombatStep = CombatStep::IDLE;
 	SetFocus(Target, EAIFocusPriority::Gameplay);
 	InitialCombatPosition = GetPawn()->GetActorLocation();
-	StopMovement();
+	MoveToLocation(InitialCombatPosition);
+}
+
+void ACombatAIController::StopCombat()
+{
+	CombatStep = CombatStep::NOT_IN_COMBAT;
+	EndTurnFunc.Unbind();
 }
 
 void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TArray<ABaseCharacter*> EnemyCharacters)

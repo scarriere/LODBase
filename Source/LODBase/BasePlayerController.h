@@ -27,7 +27,7 @@ private:
 	TMap<TSubclassOf<UCombatWidget>, UCombatWidget*> CombatWidgetMap;
 
 	bool IsInCombo = false;
-	float ComboPrecision = .8f;
+	float ComboPrecision = .7f;
 	float ComboDuration = 0.f;
 	float ComboStartTime = 0.f;
 	FName ComboAttackAction;

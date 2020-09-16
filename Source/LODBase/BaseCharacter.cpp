@@ -5,10 +5,13 @@
 #include "CombatAIController.h"
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	//GetCharacterMovement()->bUseRVOAvoidance = true;
+	//GetCharacterMovement()->AvoidanceWeight = .5f;
 }
 
 void ABaseCharacter::BeginPlay()
@@ -60,7 +63,22 @@ bool ABaseCharacter::OnPlayerSide()
 	return bOnPlayerSide;
 }
 
+void ABaseCharacter::AddAlly(ABaseCharacter * Ally)
+{
+	Allies.Add(Ally);
+}
+
+TArray<ABaseCharacter*> ABaseCharacter::GetAllies()
+{
+	return Allies;
+}
+
 UAnimMontage * ABaseCharacter::GetFlinchAnimation()
 {
 	return FlinchAnimation;
+}
+
+UAnimMontage * ABaseCharacter::GetAttackAnimation()
+{
+	return AttackAnimation;
 }

@@ -24,11 +24,16 @@ private:
 	UAnimMontage* DeathAnimation;
 
 	UPROPERTY(EditAnywhere)
-	float MaxHealth = 100.f;
+	UAnimMontage* AttackAnimation;
 
+	UPROPERTY(EditAnywhere)
+	float MaxHealth = 100.f;
 
 	UPROPERTY(VisibleAnywhere)
 	float CurrentHealth;
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<ABaseCharacter*> Allies;
 
 protected:
 	UPROPERTY(EditAnywhere)
@@ -40,12 +45,17 @@ public:
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	float Flinch();
-
 	float Died();
 
 	bool IsAlive();
 	bool OnPlayerSide();
 
+	void AddAlly(ABaseCharacter* Ally);
+	TArray<ABaseCharacter*> GetAllies();
+
 	UFUNCTION(BlueprintCallable)
 	UAnimMontage* GetFlinchAnimation();
+
+	UFUNCTION(BlueprintCallable)
+	UAnimMontage* GetAttackAnimation();
 };
