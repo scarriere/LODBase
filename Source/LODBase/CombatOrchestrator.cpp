@@ -10,6 +10,7 @@
 #include "ControllableCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BasePlayerController.h"
 
 ACombatOrchestrator::ACombatOrchestrator()
 {
@@ -31,7 +32,7 @@ void ACombatOrchestrator::BeginPlay()
 
 	TurnQueue.Dequeue(CurrentTurnController);
 	TurnQueue.Enqueue(CurrentTurnController);
-	CurrentTurnController->StartTurn(PlayerCharacters, EnemyCharacters);
+	StartMenuInterval();
 }
 
 void ACombatOrchestrator::Tick(float DeltaTime)
@@ -117,8 +118,47 @@ void ACombatOrchestrator::EndCurrentTurn()
 	{
 		TurnQueue.Dequeue(CurrentTurnController);
 		TurnQueue.Enqueue(CurrentTurnController);
-		CurrentTurnController->StartTurn(PlayerCharacters, EnemyCharacters);
 	}
+
+	if (CurrentTurnController->GetCharacter() == PlayerCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Turn"))
+		StartMenuInterval();
+	}
+	else
+	{
+		StartNextTurn();
+	}
+}
+
+void ACombatOrchestrator::StartMenuInterval()
+{
+	GetWorld()->GetTimerManager().SetTimer(MenuTimeHandle, this, &ACombatOrchestrator::StartNextTurn, MenuTimeWindow);
+
+	ABasePlayerController* PlayerController = GetWorld()->GetFirstPlayerController<ABasePlayerController>();
+	if (PlayerController == nullptr) return;
+	PlayerController->NotifyMenuStart(MenuTimeWindow);
+}
+
+void ACombatOrchestrator::OpenCombatMenu()
+{
+	GetWorld()->GetTimerManager().ClearTimer(MenuTimeHandle);
+}
+
+void ACombatOrchestrator::CloseCombatMenu()
+{
+	StartNextTurn();
+}
+
+void ACombatOrchestrator::StartNextTurn()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Turn Start"))
+
+	ABasePlayerController* PlayerController = GetWorld()->GetFirstPlayerController<ABasePlayerController>();
+	if (PlayerController == nullptr) return;
+	PlayerController->NotifyMenuEnd();
+
+	CurrentTurnController->StartTurn(PlayerCharacters, EnemyCharacters);
 }
 
 bool ACombatOrchestrator::HasOneCharacterAlive(TArray<ABaseCharacter*> Characters)

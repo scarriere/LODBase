@@ -28,6 +28,7 @@ void ABasePlayerController::BeginPlay()
 	InputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ABasePlayerController::Jump);
 	InputComponent->BindAction(TEXT("AttackRight"), IE_Pressed, this, &ABasePlayerController::AttackRight);
 	InputComponent->BindAction(TEXT("AttackLeft"), IE_Pressed, this, &ABasePlayerController::AttackLeft);
+	InputComponent->BindAction(TEXT("CombatMenu"), IE_Pressed, this, &ABasePlayerController::OpenCombatMenu);
 }
 
 void ABasePlayerController::MoveForward(float AxisValue)
@@ -55,6 +56,33 @@ void ABasePlayerController::AttackLeft()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AttackLeft()"))
 		AttackKeyPressed(TEXT("AttackLeft"));
+	}
+}
+
+void ABasePlayerController::OpenCombatMenu()
+{
+	if (IsInMenuInterval)
+	{
+		IsInMenuInterval = false;
+		IsMenuOpen = true;
+		if (MenuWidget != nullptr)
+		{
+			MenuWidget->RemoveFromViewport();
+		}
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			Orchestrator->OpenCombatMenu();
+		}
+	}
+	else if (IsMenuOpen)
+	{
+		IsMenuOpen = false;
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			Orchestrator->CloseCombatMenu();
+		}
 	}
 }
 
@@ -105,6 +133,11 @@ void ABasePlayerController::Tick(float DeltaTime)
 		UpdateAttackWidget();
 	}
 
+	if (IsInMenuInterval)
+	{
+		UpdateMenuWidget();
+	}
+
 	if (GetCharacter() == nullptr) return;
 
 	if (MoveDirection.Size() > 0.1f)
@@ -144,7 +177,7 @@ void ABasePlayerController::NotifyComboStart(float TotalDuration, TSubclassOf<UC
 
 void ABasePlayerController::UpdateAttackWidget()
 {
-	if (CurrentAttackWidget)
+	if (CurrentAttackWidget != nullptr)
 	{
 		CurrentAttackWidget->UpdateElapseTime(GetWorld()->GetRealTimeSeconds() - ComboStartTime);
 	}
@@ -156,7 +189,7 @@ void ABasePlayerController::NotifyComboEnd()
 	if (IsInCombo)
 	{
 		IsInCombo = false;
-		if (CurrentAttackWidget)
+		if (CurrentAttackWidget != nullptr)
 		{
 			CurrentAttackWidget->RemoveFromViewport();
 		}
@@ -165,5 +198,37 @@ void ABasePlayerController::NotifyComboEnd()
 		{
 			Orchestrator->GetCurrentTurnController()->ComboFail();
 		}
+	}
+}
+
+void ABasePlayerController::NotifyMenuStart(float MenuDuration)
+{
+	IsInMenuInterval = true;
+	MenuStartTime = GetWorld()->GetRealTimeSeconds();
+	if (MenuWidget == nullptr)
+	{
+		MenuWidget = CreateWidget<UCombatWidget>(this, MenuWidgetType);
+	}
+	MenuWidget->ResetWidget(MenuDuration);
+	MenuWidget->AddToViewport();
+}
+
+void ABasePlayerController::NotifyMenuEnd()
+{
+	if (IsInMenuInterval)
+	{
+		IsInMenuInterval = false;
+		if (MenuWidget != nullptr)
+		{
+			MenuWidget->RemoveFromViewport();
+		}
+	}
+}
+
+void ABasePlayerController::UpdateMenuWidget()
+{
+	if (MenuWidget != nullptr)
+	{
+		MenuWidget->UpdateElapseTime(GetWorld()->GetRealTimeSeconds() - MenuStartTime);
 	}
 }

@@ -35,10 +35,13 @@ private:
 	UCameraComponent* CombatCamera = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	float TurnWaitTime = 5.f;
+	float MenuTimeWindow = 2.f;
+	FTimerHandle MenuTimeHandle;
 
 	UFUNCTION()
 	void EndCurrentTurn();
+	void StartNextTurn();
+	void StartMenuInterval();
 
 	bool HasOneCharacterAlive(TArray<ABaseCharacter*> Characters);
 	void EndCombat(bool PlayerWon);
@@ -53,4 +56,6 @@ public:
 	void AddCharacter(ABaseCharacter* NewCharacter, bool bOnPlayerSide);
 
 	ACombatAIController* GetCurrentTurnController();
+	void OpenCombatMenu();
+	void CloseCombatMenu();
 };

@@ -23,8 +23,18 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UCombatWidget* CurrentAttackWidget;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCombatWidget> MenuWidgetType;
+
+	UPROPERTY(VisibleAnywhere)
+	UCombatWidget* MenuWidget = nullptr;
+
 	UPROPERTY(VisibleAnywhere)
 	TMap<TSubclassOf<UCombatWidget>, UCombatWidget*> CombatWidgetMap;
+
+	bool IsInMenuInterval = false;
+	bool IsMenuOpen = false;
+	float MenuStartTime = 0.f;
 
 	bool IsInCombo = false;
 	float ComboPrecision = .7f;
@@ -42,6 +52,7 @@ protected:
 	void Jump();
 	void AttackRight();
 	void AttackLeft();
+	void OpenCombatMenu();
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -49,4 +60,8 @@ public:
 	void NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType, FName AttackAction);
 	void UpdateAttackWidget();
 	void NotifyComboEnd();
+
+	void NotifyMenuStart(float MenuDuration);
+	void NotifyMenuEnd();
+	void UpdateMenuWidget();
 };
