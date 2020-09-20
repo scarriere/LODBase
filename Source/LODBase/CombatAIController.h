@@ -42,7 +42,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CompleteAttack();
 
-	virtual void StartCombat(APawn* Target);
+	virtual void StartCombat(APawn* Target, FVector CombatPosition);
 	virtual void StopCombat();
 	void StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TArray<ABaseCharacter*> EnemyCharacters);
 

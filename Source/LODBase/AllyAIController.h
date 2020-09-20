@@ -26,7 +26,7 @@ private:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void StartCombat(APawn* Target) override;
+	virtual void StartCombat(APawn* Target, FVector CombatPosition) override;
 	virtual void StopCombat() override;
 
 	UFUNCTION(BlueprintCallable)

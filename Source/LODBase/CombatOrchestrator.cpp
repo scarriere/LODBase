@@ -64,17 +64,17 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, A
 	}
 
 	//TODO: find order of combat
-	for (ABaseCharacter* Character : PlayerCharacters)
+	for (int x = 0; x < PlayerCharacters.Num(); ++x)
 	{
-		ACombatAIController* PlayerController = Cast<ACombatAIController>(Character->GetController());
-		PlayerController->StartCombat(EnemyCharacter);
+		ACombatAIController* PlayerController = Cast<ACombatAIController>(PlayerCharacters[x]->GetController());
+		PlayerController->StartCombat(EnemyCharacter, FindCombatPosition(PlayerCharacter, x));
 		PlayerController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
 		TurnQueue.Enqueue(PlayerController);
 	}
-	for (ABaseCharacter* Character : EnemyCharacters)
+	for (int x = 0; x < EnemyCharacters.Num(); ++x)
 	{
-		ACombatAIController* EnemyController = Cast<ACombatAIController>(Character->GetController());
-		EnemyController->StartCombat(PlayerCharacter);
+		ACombatAIController* EnemyController = Cast<ACombatAIController>(EnemyCharacters[x]->GetController());
+		EnemyController->StartCombat(PlayerCharacter, FindCombatPosition(EnemyCharacter, x));
 		EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
 		TurnQueue.Enqueue(EnemyController);
 	}
@@ -83,18 +83,37 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, A
 void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter, bool bOnPlayerSide)
 {
 	ACombatAIController* NewController = Cast<ACombatAIController>(NewCharacter->GetController());
-	//TODO: focus on non dead character
-	NewController->StartCombat(PlayerCharacters[0]);
-	NewController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
-	TurnQueue.Enqueue(NewController);
-
 	if (bOnPlayerSide)
 	{
+		//TODO: focus on non dead character
+		NewController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerCharacters[0], PlayerCharacters.Num()));
 		PlayerCharacters.Add(Cast<ABaseCharacter>(NewCharacter));
 	}
 	else
 	{
+		//TODO: focus on non dead character
+		NewController->StartCombat(PlayerCharacters[0], FindCombatPosition(EnemyCharacters[0], EnemyCharacters.Num()));
 		EnemyCharacters.Add(Cast<ABaseCharacter>(NewCharacter));
+	}
+	NewController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+	TurnQueue.Enqueue(NewController);
+
+	for (ABaseCharacter* Ally : NewCharacter->GetAllies())
+	{
+		ACombatAIController* AllyController = Cast<ACombatAIController>(Ally->GetController());
+
+		if (bOnPlayerSide)
+		{
+			AllyController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerCharacters[0], PlayerCharacters.Num()));
+			PlayerCharacters.Add(Ally);
+		}
+		else
+		{
+			AllyController->StartCombat(PlayerCharacters[0], FindCombatPosition(EnemyCharacters[0], EnemyCharacters.Num()));
+			EnemyCharacters.Add(Ally);
+		}
+		AllyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
+		TurnQueue.Enqueue(AllyController);
 	}
 }
 
@@ -171,6 +190,16 @@ bool ACombatOrchestrator::HasOneCharacterAlive(TArray<ABaseCharacter*> Character
 		}
 	}
 	return false;
+}
+
+FVector ACombatOrchestrator::FindCombatPosition(ABaseCharacter* CenterCharacter, int CharacterIndex)
+{
+	int Offset = CharacterIndex / 2;
+	if (CharacterIndex % 2 != 0)
+	{
+		Offset = -1 * (Offset + 1);
+	}
+	return CenterCharacter->GetActorLocation() + CenterCharacter->GetActorRightVector() * Offset * CombatPositionOffset;
 }
 
 void ACombatOrchestrator::EndCombat(bool PlayerWon)

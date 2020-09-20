@@ -22,12 +22,12 @@ void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 	}
 }
 
-void ACombatAIController::StartCombat(APawn* Target)
+void ACombatAIController::StartCombat(APawn* Target, FVector CombatPosition)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Start Combat"))
 	CombatStep = CombatStep::IDLE;
 	SetFocus(Target, EAIFocusPriority::Gameplay);
-	InitialCombatPosition = GetPawn()->GetActorLocation();
+	InitialCombatPosition = CombatPosition;
 	MoveToLocation(InitialCombatPosition);
 }
 

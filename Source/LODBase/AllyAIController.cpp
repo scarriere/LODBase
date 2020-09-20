@@ -34,9 +34,9 @@ void AAllyAIController::Follow()
 	}
 }
 
-void AAllyAIController::StartCombat(APawn* Target)
+void AAllyAIController::StartCombat(APawn* Target, FVector CombatPosition)
 {
-	Super::StartCombat(Target);
+	Super::StartCombat(Target, CombatPosition);
 
 	GetWorld()->GetTimerManager().ClearTimer(FollowTimeHandle);
 }

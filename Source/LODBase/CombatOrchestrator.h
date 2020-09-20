@@ -10,6 +10,7 @@ class ABaseCharacter;
 class AControllableCharacter;
 class ACombatAIController;
 class UCameraComponent;
+class USceneComponent;
 
 UCLASS()
 class LODBASE_API ACombatOrchestrator : public APawn
@@ -35,8 +36,11 @@ private:
 	UCameraComponent* CombatCamera = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	float MenuTimeWindow = 2.f;
+	float MenuTimeWindow = 1.f;
 	FTimerHandle MenuTimeHandle;
+
+	UPROPERTY(EditAnywhere)
+	float CombatPositionOffset = 100.f;
 
 	UFUNCTION()
 	void EndCurrentTurn();
@@ -44,6 +48,7 @@ private:
 	void StartMenuInterval();
 
 	bool HasOneCharacterAlive(TArray<ABaseCharacter*> Characters);
+	FVector FindCombatPosition(ABaseCharacter* CenterCharacter, int CharacterIndex);
 	void EndCombat(bool PlayerWon);
 
 protected:
