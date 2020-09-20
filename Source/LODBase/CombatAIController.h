@@ -37,6 +37,7 @@ private:
 	ABaseCharacter* FindFirstAliveCharacter(TArray<ABaseCharacter*> Characters);
 
 protected:
+	virtual void BeginPlay() override;
 	CombatStep CombatStep = CombatStep::NOT_IN_COMBAT;
 
 public:

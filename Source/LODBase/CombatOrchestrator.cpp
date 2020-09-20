@@ -124,7 +124,7 @@ ACombatAIController* ACombatOrchestrator::GetCurrentTurnController()
 
 void ACombatOrchestrator::EndCurrentTurn()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Turn End"))
+	UE_LOG(LogTemp, Warning, TEXT("Orchestrator::EndCurrentTurn"))
 	if (!HasOneCharacterAlive(PlayerCharacters))
 	{
 		EndCombat(false);
@@ -141,7 +141,7 @@ void ACombatOrchestrator::EndCurrentTurn()
 
 	if (CurrentTurnController->GetCharacter() == PlayerCharacter)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player Turn"))
+		UE_LOG(LogTemp, Warning, TEXT("Orchestrator::EndCurrentTurn - Player Turn"))
 		StartMenuInterval();
 	}
 	else
@@ -171,7 +171,7 @@ void ACombatOrchestrator::CloseCombatMenu()
 
 void ACombatOrchestrator::StartNextTurn()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Turn Start"))
+	UE_LOG(LogTemp, Warning, TEXT("Orchestrator::StartNextTurn"))
 
 	ABasePlayerController* PlayerController = GetWorld()->GetFirstPlayerController<ABasePlayerController>();
 	if (PlayerController == nullptr) return;
