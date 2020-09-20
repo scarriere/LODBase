@@ -8,10 +8,18 @@
 
 enum class CombatStep
 {
-	NOT_IN_COMBAT UMETA(DisplayName = "NotInCombat"),
-	IDLE UMETA(DisplayName = "Idle"),
-	MOVE_TO_TARGET UMETA(DisplayName = "MoveToTarget"),
-	MOVE_TO_START_LOCATION UMETA(DisplayName = "MoveToStartLocation"),
+	NOT_IN_COMBAT,
+	IDLE,
+	MOVE_TO_TARGET,
+	MOVE_TO_START_LOCATION,
+};
+
+UENUM(BlueprintType)
+enum CombatAction
+{
+	NONE,
+	HEAL,
+	MAGIC,
 };
 
 class ABaseCharacter;
@@ -24,6 +32,7 @@ class LODBASE_API ACombatAIController : public AAIController
 private:
 	FVector InitialCombatPosition;
 	APawn* CurrentTarget = nullptr;
+	CombatAction NextCombatAction = CombatAction::NONE;
 
 	ABaseCharacter* FindFirstAliveCharacter(TArray<ABaseCharacter*> Characters);
 
@@ -49,6 +58,11 @@ public:
 	void ComboFail();
 	void ComboSucceed();
 	void HitTarget();
+
+	void SetNextCombatAction(CombatAction CombatAction);
+
+	UFUNCTION(BlueprintCallable)
+	CombatAction GetNextCombatAction();
 
 	DECLARE_DELEGATE(EndTurn)
 	EndTurn EndTurnFunc;

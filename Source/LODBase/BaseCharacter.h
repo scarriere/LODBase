@@ -44,6 +44,12 @@ protected:
 public:
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHealth();
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthPercent();
+
 	float Flinch();
 	float Died();
 

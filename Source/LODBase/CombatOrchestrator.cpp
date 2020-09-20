@@ -219,3 +219,8 @@ void ACombatOrchestrator::EndCombat(bool PlayerWon)
 		//TODO reset enemy ai to wander
 	}
 }
+
+TArray<ABaseCharacter*> ACombatOrchestrator::GetPlayerCharacters()
+{
+	return PlayerCharacters;
+}

@@ -8,6 +8,7 @@
 
 class ABaseCharacter;
 class UCombatWidget;
+class UCombatMenuWidget;
 
 UCLASS()
 class LODBASE_API ABasePlayerController : public APlayerController
@@ -24,10 +25,18 @@ private:
 	UCombatWidget* CurrentAttackWidget;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UCombatWidget> MenuWidgetType;
+	TSubclassOf<UCombatWidget> MenuTimerWidgetType;
 
 	UPROPERTY(VisibleAnywhere)
-	UCombatWidget* MenuWidget = nullptr;
+	UCombatWidget* MenuTimerWidget = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCombatMenuWidget> MenuWidgetType;
+
+	UPROPERTY(VisibleAnywhere)
+	UCombatMenuWidget* MenuWidget = nullptr;
+
+	int MenuCharacterSelected = -1;
 
 	UPROPERTY(VisibleAnywhere)
 	TMap<TSubclassOf<UCombatWidget>, UCombatWidget*> CombatWidgetMap;
@@ -52,6 +61,7 @@ protected:
 	void Jump();
 	void AttackRight();
 	void AttackLeft();
+	void AttackDown();
 	void OpenCombatMenu();
 
 public:

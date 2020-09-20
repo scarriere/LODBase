@@ -50,10 +50,19 @@ void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TA
 	if (Target == nullptr) return;
 
 	UE_LOG(LogTemp, Warning, TEXT("AI Turn Start for Pawn %s attacking %s"), *GetPawn()->GetName(), *Target->GetName())
-	CombatStep = CombatStep::MOVE_TO_TARGET;
-	SetFocus(Target, EAIFocusPriority::Gameplay);
-	MoveToActor(Target, 10.f);
-	CurrentTarget = Target;
+	if(NextCombatAction == CombatAction::HEAL)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Healing"));
+		NextCombatAction = CombatAction::NONE;
+		EndTurnFunc.ExecuteIfBound();
+	}
+	else
+	{
+		CombatStep = CombatStep::MOVE_TO_TARGET;
+		SetFocus(Target, EAIFocusPriority::Gameplay);
+		MoveToActor(Target, 10.f);
+		CurrentTarget = Target;
+	}
 }
 
 ABaseCharacter* ACombatAIController::FindFirstAliveCharacter(TArray<ABaseCharacter*> TargetCharacters)
@@ -105,4 +114,14 @@ void ACombatAIController::FailAttack_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Base Fail Attack"));
 	CompleteAttack();
+}
+
+void ACombatAIController::SetNextCombatAction(CombatAction CombatAction)
+{
+	NextCombatAction = CombatAction;
+}
+
+CombatAction ACombatAIController::GetNextCombatAction()
+{
+	return NextCombatAction;
 }

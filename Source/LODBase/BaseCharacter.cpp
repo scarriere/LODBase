@@ -36,6 +36,16 @@ float ABaseCharacter::TakeDamage(float Damage, FDamageEvent const & DamageEvent,
 	return Damage;
 }
 
+float ABaseCharacter::GetCurrentHealth()
+{
+	return CurrentHealth;
+}
+
+float ABaseCharacter::GetHealthPercent()
+{
+	return CurrentHealth / MaxHealth;
+}
+
 float ABaseCharacter::Flinch()
 {
 	return PlayAnimMontage(FlinchAnimation);

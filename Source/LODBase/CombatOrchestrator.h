@@ -63,4 +63,6 @@ public:
 	ACombatAIController* GetCurrentTurnController();
 	void OpenCombatMenu();
 	void CloseCombatMenu();
+
+	TArray<ABaseCharacter*> GetPlayerCharacters();
 };

@@ -8,6 +8,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "CombatOrchestrator.h"
 #include "CombatWidget.h"
+#include "CombatMenuWidget.h"
 #include "CombatAIController.h"
 
 ABasePlayerController::ABasePlayerController()
@@ -28,6 +29,7 @@ void ABasePlayerController::BeginPlay()
 	InputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ABasePlayerController::Jump);
 	InputComponent->BindAction(TEXT("AttackRight"), IE_Pressed, this, &ABasePlayerController::AttackRight);
 	InputComponent->BindAction(TEXT("AttackLeft"), IE_Pressed, this, &ABasePlayerController::AttackLeft);
+	InputComponent->BindAction(TEXT("AttackDown"), IE_Pressed, this, &ABasePlayerController::AttackDown);
 	InputComponent->BindAction(TEXT("CombatMenu"), IE_Pressed, this, &ABasePlayerController::OpenCombatMenu);
 }
 
@@ -48,6 +50,28 @@ void ABasePlayerController::AttackRight()
 		UE_LOG(LogTemp, Warning, TEXT("AttackRight()"))
 		AttackKeyPressed(TEXT("AttackRight"));
 	}
+	if (IsMenuOpen)
+	{
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			if (MenuCharacterSelected == -1 && Orchestrator->GetPlayerCharacters().Num() >= 3)
+			{
+				MenuCharacterSelected = 2;
+				MenuWidget->SetSelectedCharacter(2);
+			}
+			else
+			{
+				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
+				if (SelectedController)
+				{
+					SelectedController->SetNextCombatAction(CombatAction::HEAL);
+					MenuCharacterSelected = -1;
+					MenuWidget->SetSelectedCharacter(-1);
+				}
+			}
+		}
+	}
 }
 
 void ABasePlayerController::AttackLeft()
@@ -57,6 +81,54 @@ void ABasePlayerController::AttackLeft()
 		UE_LOG(LogTemp, Warning, TEXT("AttackLeft()"))
 		AttackKeyPressed(TEXT("AttackLeft"));
 	}
+	if (IsMenuOpen)
+	{
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			if (MenuCharacterSelected == -1 && Orchestrator->GetPlayerCharacters().Num() >= 2)
+			{
+				MenuCharacterSelected = 1;
+				MenuWidget->SetSelectedCharacter(1);
+			}
+			else
+			{
+				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
+				if (SelectedController)
+				{
+					SelectedController->SetNextCombatAction(CombatAction::HEAL);
+					MenuCharacterSelected = -1;
+					MenuWidget->SetSelectedCharacter(-1);
+				}
+			}
+		}
+	}
+}
+
+void ABasePlayerController::AttackDown()
+{
+	if (IsMenuOpen)
+	{
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator)
+		{
+			if (MenuCharacterSelected == -1 && Orchestrator->GetPlayerCharacters().Num() >= 1)
+			{
+				MenuCharacterSelected = 0;
+				MenuWidget->SetSelectedCharacter(0);
+			}
+			else
+			{
+				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
+				if (SelectedController)
+				{
+					SelectedController->SetNextCombatAction(CombatAction::NONE);
+					MenuCharacterSelected = -1;
+					MenuWidget->SetSelectedCharacter(-1);
+				}
+			}
+		}
+	}
 }
 
 void ABasePlayerController::OpenCombatMenu()
@@ -65,14 +137,20 @@ void ABasePlayerController::OpenCombatMenu()
 	{
 		IsInMenuInterval = false;
 		IsMenuOpen = true;
-		if (MenuWidget != nullptr)
+		if (MenuTimerWidget != nullptr)
 		{
-			MenuWidget->RemoveFromViewport();
+			MenuTimerWidget->RemoveFromViewport();
 		}
 		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
 		if (Orchestrator)
 		{
 			Orchestrator->OpenCombatMenu();
+			if (MenuWidget == nullptr)
+			{
+				MenuWidget = CreateWidget<UCombatMenuWidget>(this, MenuWidgetType);
+			}
+			MenuWidget->InitWidget(Orchestrator->GetPlayerCharacters());
+			MenuWidget->AddToViewport();
 		}
 	}
 	else if (IsMenuOpen)
@@ -83,6 +161,7 @@ void ABasePlayerController::OpenCombatMenu()
 		{
 			Orchestrator->CloseCombatMenu();
 		}
+		MenuWidget->RemoveFromViewport();
 	}
 }
 
@@ -205,12 +284,12 @@ void ABasePlayerController::NotifyMenuStart(float MenuDuration)
 {
 	IsInMenuInterval = true;
 	MenuStartTime = GetWorld()->GetRealTimeSeconds();
-	if (MenuWidget == nullptr)
+	if (MenuTimerWidget == nullptr)
 	{
-		MenuWidget = CreateWidget<UCombatWidget>(this, MenuWidgetType);
+		MenuTimerWidget = CreateWidget<UCombatWidget>(this, MenuTimerWidgetType);
 	}
-	MenuWidget->ResetWidget(MenuDuration);
-	MenuWidget->AddToViewport();
+	MenuTimerWidget->ResetWidget(MenuDuration);
+	MenuTimerWidget->AddToViewport();
 }
 
 void ABasePlayerController::NotifyMenuEnd()
@@ -218,17 +297,17 @@ void ABasePlayerController::NotifyMenuEnd()
 	if (IsInMenuInterval)
 	{
 		IsInMenuInterval = false;
-		if (MenuWidget != nullptr)
+		if (MenuTimerWidget != nullptr)
 		{
-			MenuWidget->RemoveFromViewport();
+			MenuTimerWidget->RemoveFromViewport();
 		}
 	}
 }
 
 void ABasePlayerController::UpdateMenuWidget()
 {
-	if (MenuWidget != nullptr)
+	if (MenuTimerWidget != nullptr)
 	{
-		MenuWidget->UpdateElapseTime(GetWorld()->GetRealTimeSeconds() - MenuStartTime);
+		MenuTimerWidget->UpdateElapseTime(GetWorld()->GetRealTimeSeconds() - MenuStartTime);
 	}
 }
