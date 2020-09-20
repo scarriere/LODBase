@@ -42,11 +42,9 @@ protected:
 public:
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 
-	UFUNCTION(BlueprintNativeEvent)
 	void Attack();
-
-	UFUNCTION(BlueprintNativeEvent)
 	void FailAttack();
+	void Heal();
 
 	UFUNCTION(BlueprintCallable)
 	void CompleteAttack();
@@ -66,4 +64,11 @@ public:
 
 	DECLARE_DELEGATE(EndTurn)
 	EndTurn EndTurnFunc;
+
+	void OnAttackComplete(UAnimMontage* AnimeMontage, bool bInterrupted);
+
+	DECLARE_DELEGATE_TwoParams(AnimationCompleteDelegate, class UAnimMontage*, bool /*bInterrupted*/)
+	AnimationCompleteDelegate AttackCompleteDelegate;
+	AnimationCompleteDelegate FailAttackCompleteDelegate;
+	AnimationCompleteDelegate HealCompleteDelegate;
 };

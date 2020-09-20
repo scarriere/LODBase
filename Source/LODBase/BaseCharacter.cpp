@@ -29,7 +29,7 @@ float ABaseCharacter::TakeDamage(float Damage, FDamageEvent const & DamageEvent,
 	{
 		Died();
 	}
-	else
+	else if (Damage > 0)
 	{
 		Flinch();
 	}
@@ -91,4 +91,9 @@ UAnimMontage * ABaseCharacter::GetFlinchAnimation()
 UAnimMontage * ABaseCharacter::GetAttackAnimation()
 {
 	return AttackAnimation;
+}
+
+UAnimMontage * ABaseCharacter::GetHealAnimation()
+{
+	return HealAnimation;
 }

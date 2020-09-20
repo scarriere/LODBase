@@ -18,6 +18,7 @@ void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 	else if (CombatStep == CombatStep::MOVE_TO_START_LOCATION && Result.IsSuccess())
 	{
 		CombatStep = CombatStep::IDLE;
+		NextCombatAction = CombatAction::NONE;
 		EndTurnFunc.ExecuteIfBound();
 	}
 }
@@ -53,8 +54,7 @@ void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TA
 	if(NextCombatAction == CombatAction::HEAL)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Healing"));
-		NextCombatAction = CombatAction::NONE;
-		EndTurnFunc.ExecuteIfBound();
+		Heal();
 	}
 	else
 	{
@@ -89,7 +89,12 @@ void ACombatAIController::ComboSucceed()
 
 void ACombatAIController::HitTarget()
 {
-	if (CurrentTarget)
+	if (NextCombatAction == CombatAction::HEAL)
+	{
+		float Heal = -40.f;
+		UGameplayStatics::ApplyDamage(GetCharacter(), Heal, this, GetCharacter(), nullptr);
+	}
+	else if (CurrentTarget)
 	{
 		//TODO: Calculate the damage
 		float Damage = 10.f;
@@ -104,16 +109,52 @@ void ACombatAIController::CompleteAttack()
 	MoveToLocation(InitialCombatPosition, .1f);
 }
 
-void ACombatAIController::Attack_Implementation()
+void ACombatAIController::OnAttackComplete(UAnimMontage* AnimeMontage, bool bInterrupted)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Base Attack"));
 	CompleteAttack();
 }
 
-void ACombatAIController::FailAttack_Implementation()
+void ACombatAIController::Attack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Base Attack"));
+	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
+	if (ControlledCharacter == nullptr) return;
+
+	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
+
+	AnimInstance->Montage_Play(ControlledCharacter->GetAttackAnimation());
+
+	AttackCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
+	AnimInstance->Montage_SetEndDelegate(AttackCompleteDelegate, ControlledCharacter->GetAttackAnimation());
+}
+
+void ACombatAIController::FailAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Base Fail Attack"));
-	CompleteAttack();
+	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
+	if (ControlledCharacter == nullptr) return;
+
+	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
+
+	AnimInstance->Montage_Play(ControlledCharacter->GetFlinchAnimation());
+
+	FailAttackCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
+	AnimInstance->Montage_SetEndDelegate(FailAttackCompleteDelegate, ControlledCharacter->GetFlinchAnimation());
+}
+
+
+void ACombatAIController::Heal()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Base Heal"));
+	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
+	if (ControlledCharacter == nullptr) return;
+
+	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
+
+	AnimInstance->Montage_Play(ControlledCharacter->GetHealAnimation());
+
+	HealCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
+	AnimInstance->Montage_SetEndDelegate(HealCompleteDelegate, ControlledCharacter->GetHealAnimation());
 }
 
 void ACombatAIController::SetNextCombatAction(CombatAction CombatAction)
