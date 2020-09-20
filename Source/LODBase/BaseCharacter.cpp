@@ -5,11 +5,19 @@
 #include "CombatAIController.h"
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "DamageWidget.h"
 
 ABaseCharacter::ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	DamageWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Damage Widget"));
+	DamageWidgetComponent->SetupAttachment(RootComponent);
+	DamageWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	DamageWidgetComponent->SetWidgetClass(UDamageWidget::StaticClass());
+	DamageWidgetComponent->SetVisibility(false);
 	//GetCharacterMovement()->bUseRVOAvoidance = true;
 	//GetCharacterMovement()->AvoidanceWeight = .5f;
 }
@@ -24,6 +32,14 @@ float ABaseCharacter::TakeDamage(float Damage, FDamageEvent const & DamageEvent,
 {
 	if (CurrentHealth <= 0) return 0.f;
 	UE_LOG(LogTemp, Warning, TEXT("%s taking %f damage"), *GetName(), Damage)
+	UDamageWidget* DamageWidget = Cast<UDamageWidget>(DamageWidgetComponent->GetUserWidgetObject());
+	DamageWidgetComponent->SetVisibility(true);
+	if (DamageWidget != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Setting widget damage"))
+		DamageWidget->ShowDamage(Damage);
+	}
+
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
 	if (CurrentHealth <= 0)
 	{

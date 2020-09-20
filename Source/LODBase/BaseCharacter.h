@@ -7,6 +7,7 @@
 #include "BaseCharacter.generated.h"
 
 class ACombatAIController;
+class UWidgetComponent;
 
 UCLASS()
 class LODBASE_API ABaseCharacter : public ACharacter
@@ -37,6 +38,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<ABaseCharacter*> Allies;
+
+	UPROPERTY(EditAnywhere)
+	UWidgetComponent* DamageWidgetComponent;
 
 protected:
 	UPROPERTY(EditAnywhere)
