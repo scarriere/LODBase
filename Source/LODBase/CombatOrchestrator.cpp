@@ -50,6 +50,8 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, A
 	FRotator CameraRotation = UKismetMathLibrary::FindLookAtRotation(CombatCamera->GetComponentLocation(), CombatCenter);
 	CombatCamera->SetWorldRotation(CameraRotation);
 
+	//DrawDebugSphere(GetWorld(), CombatCenter, CombatRadius, 16, FColor::Yellow, true);
+
 	PlayerCharacter->StartCombat(this);
 
 	PlayerCharacters.Add(Cast<ABaseCharacter>(PlayerCharacter));
@@ -64,17 +66,19 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, A
 	}
 
 	//TODO: find order of combat
+	PlayerDirection = CalculateCombatDirection(PlayerCharacter->GetActorLocation());
 	for (int x = 0; x < PlayerCharacters.Num(); ++x)
 	{
 		ACombatAIController* PlayerController = Cast<ACombatAIController>(PlayerCharacters[x]->GetController());
-		PlayerController->StartCombat(EnemyCharacter, FindCombatPosition(PlayerCharacter, x));
+		PlayerController->StartCombat(EnemyCharacter, FindCombatPosition(PlayerDirection, x));
 		PlayerController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
 		TurnQueue.Enqueue(PlayerController);
 	}
+	EnemyDirection = CalculateCombatDirection(EnemyCharacter->GetActorLocation());
 	for (int x = 0; x < EnemyCharacters.Num(); ++x)
 	{
 		ACombatAIController* EnemyController = Cast<ACombatAIController>(EnemyCharacters[x]->GetController());
-		EnemyController->StartCombat(PlayerCharacter, FindCombatPosition(EnemyCharacter, x));
+		EnemyController->StartCombat(PlayerCharacter, FindCombatPosition(-EnemyDirection, x));
 		EnemyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
 		TurnQueue.Enqueue(EnemyController);
 	}
@@ -86,13 +90,13 @@ void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter, bool bOnPla
 	if (bOnPlayerSide)
 	{
 		//TODO: focus on non dead character
-		NewController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerCharacters[0], PlayerCharacters.Num()));
+		NewController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerDirection, PlayerCharacters.Num()));
 		PlayerCharacters.Add(Cast<ABaseCharacter>(NewCharacter));
 	}
 	else
 	{
 		//TODO: focus on non dead character
-		NewController->StartCombat(PlayerCharacters[0], FindCombatPosition(EnemyCharacters[0], EnemyCharacters.Num()));
+		NewController->StartCombat(PlayerCharacters[0], FindCombatPosition(-EnemyDirection, EnemyCharacters.Num()));
 		EnemyCharacters.Add(Cast<ABaseCharacter>(NewCharacter));
 	}
 	NewController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
@@ -104,12 +108,12 @@ void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter, bool bOnPla
 
 		if (bOnPlayerSide)
 		{
-			AllyController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerCharacters[0], PlayerCharacters.Num()));
+			AllyController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerDirection, PlayerCharacters.Num()));
 			PlayerCharacters.Add(Ally);
 		}
 		else
 		{
-			AllyController->StartCombat(PlayerCharacters[0], FindCombatPosition(EnemyCharacters[0], EnemyCharacters.Num()));
+			AllyController->StartCombat(PlayerCharacters[0], FindCombatPosition(-EnemyDirection, EnemyCharacters.Num()));
 			EnemyCharacters.Add(Ally);
 		}
 		AllyController->EndTurnFunc.BindUObject(this, &ACombatOrchestrator::EndCurrentTurn);
@@ -192,14 +196,23 @@ bool ACombatOrchestrator::HasOneCharacterAlive(TArray<ABaseCharacter*> Character
 	return false;
 }
 
-FVector ACombatOrchestrator::FindCombatPosition(ABaseCharacter* CenterCharacter, int CharacterIndex)
+FVector ACombatOrchestrator::FindCombatPosition(FVector InitialDirection, int CharacterIndex)
 {
 	int Offset = CharacterIndex / 2;
 	if (CharacterIndex % 2 != 0)
 	{
 		Offset = -1 * (Offset + 1);
 	}
-	return CenterCharacter->GetActorLocation() + CenterCharacter->GetActorRightVector() * Offset * CombatPositionOffset;
+	FVector RotatedPosition = InitialDirection.RotateAngleAxis(Offset * CombatPositionDegreeOffset, FVector::UpVector);
+	//DrawDebugPoint(GetWorld(), CombatCenter + RotatedPosition, 8.f, FColor::Yellow, true);
+	return CombatCenter + RotatedPosition;
+}
+
+FVector ACombatOrchestrator::CalculateCombatDirection(FVector CharacterPosition)
+{
+	FVector CharacterDirection = (PlayerCharacter->GetActorLocation() - CombatCenter);
+	CharacterDirection.Normalize();
+	return CharacterDirection * CombatRadius;
 }
 
 void ACombatOrchestrator::EndCombat(bool PlayerWon)

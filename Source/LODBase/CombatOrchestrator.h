@@ -40,7 +40,13 @@ private:
 	FTimerHandle MenuTimeHandle;
 
 	UPROPERTY(EditAnywhere)
-	float CombatPositionOffset = 100.f;
+	float CombatPositionDegreeOffset = 25.f;
+
+	FVector PlayerDirection;
+	FVector EnemyDirection;
+
+	UPROPERTY(EditAnywhere)
+	float CombatRadius = 300.f;
 
 	UFUNCTION()
 	void EndCurrentTurn();
@@ -48,7 +54,8 @@ private:
 	void StartMenuInterval();
 
 	bool HasOneCharacterAlive(TArray<ABaseCharacter*> Characters);
-	FVector FindCombatPosition(ABaseCharacter* CenterCharacter, int CharacterIndex);
+	FVector FindCombatPosition(FVector InitialDirection, int CharacterIndex);
+	FVector CalculateCombatDirection(FVector CharacterPosition);
 	void EndCombat(bool PlayerWon);
 
 protected:

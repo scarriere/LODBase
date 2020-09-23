@@ -3,6 +3,7 @@
 
 #include "CombatAIController.h"
 #include "BaseCharacter.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 void ACombatAIController::BeginPlay()
@@ -38,6 +39,8 @@ void ACombatAIController::StartCombat(APawn* Target, FVector CombatPosition)
 	CombatStep = CombatStep::IDLE;
 	SetFocus(Target, EAIFocusPriority::Gameplay);
 	InitialCombatPosition = CombatPosition;
+	//TODO: Find better solution
+	GetCharacter()->GetCapsuleComponent()->SetCollisionProfileName(TEXT("CharacterMesh"));
 	MoveToLocation(InitialCombatPosition);
 }
 
@@ -45,6 +48,7 @@ void ACombatAIController::StopCombat()
 {
 	CombatStep = CombatStep::NOT_IN_COMBAT;
 	EndTurnFunc.Unbind();
+	GetCharacter()->GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
 }
 
 void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TArray<ABaseCharacter*> EnemyCharacters)
