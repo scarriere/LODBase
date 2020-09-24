@@ -9,6 +9,7 @@
 #include "CombatAIController.h"
 #include "ControllableCharacter.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "BasePlayerController.h"
 
@@ -18,17 +19,17 @@ ACombatOrchestrator::ACombatOrchestrator()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 
+	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Spring Arm"));
+	CameraArm->SetupAttachment(RootComponent);
+
 	CombatCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Combat Camera"));
-	RootComponent->SetupAttachment(RootComponent);
+	CombatCamera->SetupAttachment(CameraArm);
 }
 
 void ACombatOrchestrator::BeginPlay()
 {
 	Super::BeginPlay();
 	if (PlayerCharacters[0] == nullptr || EnemyCharacters[0] == nullptr) return;
-
-	//TODO: setup combat camera
-	//GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 1.f);
 
 	TurnQueue.Dequeue(CurrentTurnController);
 	TurnQueue.Enqueue(CurrentTurnController);
@@ -38,21 +39,18 @@ void ACombatOrchestrator::BeginPlay()
 void ACombatOrchestrator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (CameraFocus == nullptr) return;
+	SetActorLocation(CameraFocus->GetActorLocation());
 }
 
 void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, ABaseCharacter* EnemyCharacter)
 {
 	if (APlayerCharacter == nullptr || EnemyCharacter == nullptr) return;
 	PlayerCharacter = APlayerCharacter;
+	CameraFocus = PlayerCharacter;
 
 	CombatCenter = FMath::Lerp(PlayerCharacter->GetActorLocation(), EnemyCharacter->GetActorLocation(), .5f);
-	CombatCamera->SetWorldLocation(CombatCenter + FVector(0.f, 0.f, 500.f));
-	FRotator CameraRotation = UKismetMathLibrary::FindLookAtRotation(CombatCamera->GetComponentLocation(), CombatCenter);
-	CombatCamera->SetWorldRotation(CameraRotation);
-
 	//DrawDebugSphere(GetWorld(), CombatCenter, CombatRadius, 16, FColor::Yellow, true);
-
-	PlayerCharacter->StartCombat(this);
 
 	PlayerCharacters.Add(Cast<ABaseCharacter>(PlayerCharacter));
 	for (ABaseCharacter* Ally : PlayerCharacter->GetAllies())
@@ -84,10 +82,10 @@ void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, A
 	}
 }
 
-void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter, bool bOnPlayerSide)
+void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter)
 {
 	ACombatAIController* NewController = Cast<ACombatAIController>(NewCharacter->GetController());
-	if (bOnPlayerSide)
+	if (NewCharacter->OnPlayerSide())
 	{
 		//TODO: focus on non dead character
 		NewController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerDirection, PlayerCharacters.Num()));
@@ -106,7 +104,7 @@ void ACombatOrchestrator::AddCharacter(ABaseCharacter* NewCharacter, bool bOnPla
 	{
 		ACombatAIController* AllyController = Cast<ACombatAIController>(Ally->GetController());
 
-		if (bOnPlayerSide)
+		if (NewCharacter->OnPlayerSide())
 		{
 			AllyController->StartCombat(EnemyCharacters[0], FindCombatPosition(PlayerDirection, PlayerCharacters.Num()));
 			PlayerCharacters.Add(Ally);
@@ -181,6 +179,12 @@ void ACombatOrchestrator::StartNextTurn()
 	if (PlayerController == nullptr) return;
 	PlayerController->NotifyMenuEnd();
 
+	ABaseCharacter* CurrentCharacter = Cast<ABaseCharacter>(CurrentTurnController->GetCharacter());
+	if (CurrentCharacter != nullptr && CurrentCharacter->OnPlayerSide())
+	{
+		CameraFocus = CurrentCharacter;
+	}
+
 	CurrentTurnController->StartTurn(PlayerCharacters, EnemyCharacters);
 }
 
@@ -225,7 +229,7 @@ void ACombatOrchestrator::EndCombat(bool PlayerWon)
 			PlayerController->StopCombat();
 		}
 		PlayerCharacter->StopCombat();
-		GetWorld()->DestroyActor(this);
+		SetLifeSpan(2.f);
 	}
 	else
 	{

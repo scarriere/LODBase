@@ -31,6 +31,9 @@ private:
 	UAnimMontage* HealAnimation;
 
 	UPROPERTY(EditAnywhere)
+	UAnimMontage* MagicAnimation;
+
+	UPROPERTY(EditAnywhere)
 	float MaxHealth = 100.f;
 
 	UPROPERTY(VisibleAnywhere)
@@ -74,4 +77,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UAnimMontage* GetHealAnimation();
+
+	UFUNCTION(BlueprintCallable)
+	UAnimMontage* GetMagicAnimation();
 };

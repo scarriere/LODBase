@@ -61,6 +61,7 @@ protected:
 	void Jump();
 	void AttackRight();
 	void AttackLeft();
+	void AttackUp();
 	void AttackDown();
 	void OpenCombatMenu();
 

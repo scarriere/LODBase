@@ -17,7 +17,7 @@ class LODBASE_API UCombatMenuWidget : public UUserWidget
 	TArray<ABaseCharacter*> Characters;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	int SelectedCharacterIndex = 0;
+	int SelectedCharacterIndex = -1;
 	
 public:
 

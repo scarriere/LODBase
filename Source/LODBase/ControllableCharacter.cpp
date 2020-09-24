@@ -3,10 +3,13 @@
 
 #include "ControllableCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "DrawDebugHelpers.h"
 #include "CombatAIController.h"
 #include "BasePlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "CombatOrchestrator.h"
 
 AControllableCharacter::AControllableCharacter()
 {
@@ -27,11 +30,11 @@ void AControllableCharacter::BeginPlay()
 	CombatAIController = GetWorld()->SpawnActor<ACombatAIController>(CombatAIControllerType);
 }
 
-void AControllableCharacter::StartCombat(APawn* Orchestractor)
+void AControllableCharacter::StartCombat(ACombatOrchestrator* Orchestractor)
 {
 	DefaultController->UnPossess();
 	DefaultController->Possess(Orchestractor);
-	DefaultController->SetViewTarget(this);
+	DefaultController->SetViewTarget(Orchestractor);
 	CombatAIController->Possess(this);
 }
 
@@ -39,6 +42,24 @@ void AControllableCharacter::StopCombat()
 {
 	CombatAIController->UnPossess();
 	DefaultController->Possess(this);
+	DefaultController->SetViewTarget(this);
+}
+
+void AControllableCharacter::EncounterEnemy(ABaseCharacter * Enemy)
+{
+	ACombatOrchestrator* CombatOrchestrator = Cast<ACombatOrchestrator>(UGameplayStatics::GetActorOfClass(GetWorld(), CombatOrchestratorType));
+	if (CombatOrchestrator == nullptr)
+	{
+		CombatOrchestrator = GetWorld()->SpawnActorDeferred<ACombatOrchestrator>(CombatOrchestratorType, GetActorTransform());
+		StartCombat(CombatOrchestrator);
+		CombatOrchestrator->Initialize(this, Enemy);
+		CombatOrchestrator->FinishSpawning(GetActorTransform());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Enemy interfere with combat"))
+		CombatOrchestrator->AddCharacter(Enemy);
+	}
 }
 
 ABasePlayerController* AControllableCharacter::GetDefaultController()

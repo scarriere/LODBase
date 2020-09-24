@@ -21,6 +21,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	float CombatSphereRadius = 200.f;
+	float VisibilitySphereRadius = 500.f;
 	AEnemyAIController* AIController = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))

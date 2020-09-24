@@ -29,6 +29,7 @@ void ABasePlayerController::BeginPlay()
 	InputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ABasePlayerController::Jump);
 	InputComponent->BindAction(TEXT("AttackRight"), IE_Pressed, this, &ABasePlayerController::AttackRight);
 	InputComponent->BindAction(TEXT("AttackLeft"), IE_Pressed, this, &ABasePlayerController::AttackLeft);
+	InputComponent->BindAction(TEXT("AttackUp"), IE_Pressed, this, &ABasePlayerController::AttackUp);
 	InputComponent->BindAction(TEXT("AttackDown"), IE_Pressed, this, &ABasePlayerController::AttackDown);
 	InputComponent->BindAction(TEXT("CombatMenu"), IE_Pressed, this, &ABasePlayerController::OpenCombatMenu);
 }
@@ -55,17 +56,20 @@ void ABasePlayerController::AttackRight()
 		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
 		if (Orchestrator)
 		{
-			if (MenuCharacterSelected == -1 && Orchestrator->GetPlayerCharacters().Num() >= 3)
+			if (MenuCharacterSelected == -1)
 			{
-				MenuCharacterSelected = 2;
-				MenuWidget->SetSelectedCharacter(2);
+				if (Orchestrator->GetPlayerCharacters().Num() >= 3)
+				{
+					MenuCharacterSelected = 2;
+					MenuWidget->SetSelectedCharacter(2);
+				}
 			}
 			else
 			{
 				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
 				if (SelectedController)
 				{
-					SelectedController->SetNextCombatAction(CombatAction::HEAL);
+					SelectedController->SetNextCombatAction(CombatAction::NONE);
 					MenuCharacterSelected = -1;
 					MenuWidget->SetSelectedCharacter(-1);
 				}
@@ -86,10 +90,13 @@ void ABasePlayerController::AttackLeft()
 		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
 		if (Orchestrator)
 		{
-			if (MenuCharacterSelected == -1 && Orchestrator->GetPlayerCharacters().Num() >= 2)
+			if (MenuCharacterSelected == -1)
 			{
-				MenuCharacterSelected = 1;
-				MenuWidget->SetSelectedCharacter(1);
+				if (Orchestrator->GetPlayerCharacters().Num() >= 2)
+				{
+					MenuCharacterSelected = 1;
+					MenuWidget->SetSelectedCharacter(1);
+				}
 			}
 			else
 			{
@@ -107,6 +114,11 @@ void ABasePlayerController::AttackLeft()
 
 void ABasePlayerController::AttackDown()
 {
+	if (IsInCombo)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AttackDown()"))
+		AttackKeyPressed(TEXT("AttackDown"));
+	}
 	if (IsMenuOpen)
 	{
 		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
@@ -122,12 +134,21 @@ void ABasePlayerController::AttackDown()
 				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
 				if (SelectedController)
 				{
-					SelectedController->SetNextCombatAction(CombatAction::NONE);
+					SelectedController->SetNextCombatAction(CombatAction::MAGIC);
 					MenuCharacterSelected = -1;
 					MenuWidget->SetSelectedCharacter(-1);
 				}
 			}
 		}
+	}
+}
+
+void ABasePlayerController::AttackUp()
+{
+	if (IsInCombo)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AttackUp()"))
+		AttackKeyPressed(TEXT("AttackUp"));
 	}
 }
 
@@ -156,6 +177,8 @@ void ABasePlayerController::OpenCombatMenu()
 	else if (IsMenuOpen)
 	{
 		IsMenuOpen = false;
+		MenuCharacterSelected = -1;
+		MenuWidget->SetSelectedCharacter(-1);
 		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
 		if (Orchestrator)
 		{

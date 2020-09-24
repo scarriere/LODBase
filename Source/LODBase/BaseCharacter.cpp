@@ -113,3 +113,8 @@ UAnimMontage * ABaseCharacter::GetHealAnimation()
 {
 	return HealAnimation;
 }
+
+UAnimMontage * ABaseCharacter::GetMagicAnimation()
+{
+	return MagicAnimation;
+}

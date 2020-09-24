@@ -46,6 +46,7 @@ public:
 	void Attack();
 	void FailAttack();
 	void Heal();
+	void Magic();
 
 	UFUNCTION(BlueprintCallable)
 	void CompleteAttack();
@@ -67,9 +68,11 @@ public:
 	EndTurn EndTurnFunc;
 
 	void OnAttackComplete(UAnimMontage* AnimeMontage, bool bInterrupted);
+	void OnCompleteMagic(UAnimMontage* AnimeMontage, bool bInterrupted);
 
 	DECLARE_DELEGATE_TwoParams(AnimationCompleteDelegate, class UAnimMontage*, bool /*bInterrupted*/)
 	AnimationCompleteDelegate AttackCompleteDelegate;
 	AnimationCompleteDelegate FailAttackCompleteDelegate;
 	AnimationCompleteDelegate HealCompleteDelegate;
+	AnimationCompleteDelegate MagicCompleteDelegate;
 };

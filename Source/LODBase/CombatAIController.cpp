@@ -13,18 +13,24 @@ void ACombatAIController::BeginPlay()
 	AttackCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
 	FailAttackCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
 	HealCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
+	MagicCompleteDelegate.BindUObject(this, &ACombatAIController::OnCompleteMagic);
 }
 
 void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult & Result)
 {
 	Super::OnMoveCompleted(RequestID, Result);
 
-	if (CombatStep == CombatStep::MOVE_TO_TARGET && Result.IsSuccess())
+	if (Result.IsSuccess() == false)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnMoveCompleted - Fail to complete current movement"))
+	}
+
+	if (CombatStep == CombatStep::MOVE_TO_TARGET)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnMoveCompleted - CombatStep::MOVE_TO_TARGET"))
 		Attack();
 	}
-	else if (CombatStep == CombatStep::MOVE_TO_START_LOCATION && Result.IsSuccess())
+	else if (CombatStep == CombatStep::MOVE_TO_START_LOCATION)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnMoveCompleted - CombatStep::MOVE_TO_START_LOCATION"))
 		CombatStep = CombatStep::IDLE;
@@ -39,6 +45,7 @@ void ACombatAIController::StartCombat(APawn* Target, FVector CombatPosition)
 	CombatStep = CombatStep::IDLE;
 	SetFocus(Target, EAIFocusPriority::Gameplay);
 	InitialCombatPosition = CombatPosition;
+	NextCombatAction = CombatAction::NONE;
 	//TODO: Find better solution
 	GetCharacter()->GetCapsuleComponent()->SetCollisionProfileName(TEXT("CharacterMesh"));
 	MoveToLocation(InitialCombatPosition);
@@ -68,6 +75,13 @@ void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TA
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartTurn - Healing"));
 		Heal();
+	}
+	else if (NextCombatAction == CombatAction::MAGIC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartTurn - Magic"));
+		SetFocus(Target, EAIFocusPriority::Gameplay);
+		CurrentTarget = Target;
+		Magic();
 	}
 	else
 	{
@@ -109,9 +123,16 @@ void ACombatAIController::HitTarget()
 	}
 	else if (CurrentTarget)
 	{
-		//TODO: Calculate the damage
-		float Damage = 10.f;
-		UGameplayStatics::ApplyDamage(CurrentTarget, Damage, this, GetCharacter(), nullptr);
+		if (NextCombatAction == CombatAction::MAGIC)
+		{
+			//TODO: implement multiplier?
+		}
+		else
+		{
+			//TODO: Calculate the damage
+			float Damage = 10.f;
+			UGameplayStatics::ApplyDamage(CurrentTarget, Damage, this, GetCharacter(), nullptr);
+		}
 	}
 }
 
@@ -120,6 +141,18 @@ void ACombatAIController::CompleteAttack()
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::CompleteAttack"));
 	CombatStep = CombatStep::MOVE_TO_START_LOCATION;
 	MoveToLocation(InitialCombatPosition, .1f);
+}
+
+void ACombatAIController::OnCompleteMagic(UAnimMontage* AnimeMontage, bool bInterrupted)
+{
+	if (bInterrupted) return;
+	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::CompleteMagic"));
+	if (CurrentTarget)
+	{
+		float Damage = 40.f;
+		UGameplayStatics::ApplyDamage(CurrentTarget, Damage, this, GetCharacter(), nullptr);
+	}
+	CompleteAttack();
 }
 
 void ACombatAIController::OnAttackComplete(UAnimMontage* AnimeMontage, bool bInterrupted)
@@ -161,6 +194,17 @@ void ACombatAIController::Heal()
 	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
 	AnimInstance->Montage_Play(ControlledCharacter->GetHealAnimation());
 	AnimInstance->Montage_SetEndDelegate(HealCompleteDelegate, ControlledCharacter->GetHealAnimation());
+}
+
+void ACombatAIController::Magic()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::Magic"));
+	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
+	if (ControlledCharacter == nullptr) return;
+
+	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
+	AnimInstance->Montage_Play(ControlledCharacter->GetMagicAnimation());
+	AnimInstance->Montage_SetEndDelegate(MagicCompleteDelegate, ControlledCharacter->GetMagicAnimation());
 }
 
 void ACombatAIController::SetNextCombatAction(CombatAction CombatAction)

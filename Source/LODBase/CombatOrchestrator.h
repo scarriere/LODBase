@@ -10,6 +10,7 @@ class ABaseCharacter;
 class AControllableCharacter;
 class ACombatAIController;
 class UCameraComponent;
+class USpringArmComponent;
 class USceneComponent;
 
 UCLASS()
@@ -33,7 +34,12 @@ private:
 	FVector CombatCenter;
 
 	UPROPERTY(VisibleAnywhere)
+	USpringArmComponent* CameraArm;
+
+	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CombatCamera = nullptr;
+
+	ABaseCharacter* CameraFocus = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	float MenuTimeWindow = 1.f;
@@ -65,7 +71,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter);
-	void AddCharacter(ABaseCharacter* NewCharacter, bool bOnPlayerSide);
+	void AddCharacter(ABaseCharacter* NewCharacter);
 
 	ACombatAIController* GetCurrentTurnController();
 	void OpenCombatMenu();
