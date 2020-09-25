@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DamageWidget.h"
+#include "CombatComponent.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -18,6 +19,8 @@ ABaseCharacter::ABaseCharacter()
 	DamageWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	DamageWidgetComponent->SetWidgetClass(UDamageWidget::StaticClass());
 	DamageWidgetComponent->SetVisibility(false);
+
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	//GetCharacterMovement()->bUseRVOAvoidance = true;
 	//GetCharacterMovement()->AvoidanceWeight = .5f;
 }
@@ -117,4 +120,9 @@ UAnimMontage * ABaseCharacter::GetHealAnimation()
 UAnimMontage * ABaseCharacter::GetMagicAnimation()
 {
 	return MagicAnimation;
+}
+
+UCombatComponent* ABaseCharacter::GetCombatComponent()
+{
+	return CombatComponent;
 }

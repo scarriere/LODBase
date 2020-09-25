@@ -3,6 +3,7 @@
 
 #include "CombatAIController.h"
 #include "BaseCharacter.h"
+#include "CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -10,10 +11,8 @@ void ACombatAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AttackCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
-	FailAttackCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
-	HealCompleteDelegate.BindUObject(this, &ACombatAIController::OnAttackComplete);
-	MagicCompleteDelegate.BindUObject(this, &ACombatAIController::OnCompleteMagic);
+	ActionCompleteDelegate.BindUObject(this, &ACombatAIController::OnActionComplete);
+	FailActionCompleteDelegate.BindUObject(this, &ACombatAIController::OnActionFail);
 }
 
 void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult & Result)
@@ -28,24 +27,30 @@ void ACombatAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 	if (CombatStep == CombatStep::MOVE_TO_TARGET)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnMoveCompleted - CombatStep::MOVE_TO_TARGET"))
-		Attack();
+		Action();
 	}
 	else if (CombatStep == CombatStep::MOVE_TO_START_LOCATION)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnMoveCompleted - CombatStep::MOVE_TO_START_LOCATION"))
 		CombatStep = CombatStep::IDLE;
-		NextCombatAction = CombatAction::NONE;
+		NextCombatAction = ActorCombatComponent->GetCombatActionSlot(ActionSlotPosition::DEFAULT);
 		EndTurnFunc.ExecuteIfBound();
 	}
 }
 
 void ACombatAIController::StartCombat(APawn* Target, FVector CombatPosition)
 {
+	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
+	if (ControlledCharacter == nullptr) return;
+
+	ActorCombatComponent = ControlledCharacter->GetCombatComponent();
+	if (ActorCombatComponent == nullptr) return;
+
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartCombat"))
 	CombatStep = CombatStep::IDLE;
 	SetFocus(Target, EAIFocusPriority::Gameplay);
 	InitialCombatPosition = CombatPosition;
-	NextCombatAction = CombatAction::NONE;
+	NextCombatAction = ActorCombatComponent->GetCombatActionSlot(ActionSlotPosition::DEFAULT);
 	//TODO: Find better solution
 	GetCharacter()->GetCapsuleComponent()->SetCollisionProfileName(TEXT("CharacterMesh"));
 	MoveToLocation(InitialCombatPosition);
@@ -71,24 +76,23 @@ void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TA
 	if (Target == nullptr) return;
 
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartTurn - AI Turn Start for Pawn %s attacking %s"), *GetPawn()->GetName(), *Target->GetName())
-	if(NextCombatAction == CombatAction::HEAL)
+	if (NextCombatAction.TargetSelf)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartTurn - Healing"));
-		Heal();
-	}
-	else if (NextCombatAction == CombatAction::MAGIC)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartTurn - Magic"));
-		SetFocus(Target, EAIFocusPriority::Gameplay);
-		CurrentTarget = Target;
-		Magic();
+		CurrentTarget = GetCharacter();
 	}
 	else
 	{
-		CombatStep = CombatStep::MOVE_TO_TARGET;
-		SetFocus(Target, EAIFocusPriority::Gameplay);
-		MoveToActor(Target, 10.f);
 		CurrentTarget = Target;
+		SetFocus(Target, EAIFocusPriority::Gameplay);
+	}
+	if (NextCombatAction.MoveToTarget)
+	{
+		CombatStep = CombatStep::MOVE_TO_TARGET;
+		MoveToActor(Target, 10.f);
+	}
+	else
+	{
+		Action();
 	}
 }
 
@@ -106,74 +110,64 @@ ABaseCharacter* ACombatAIController::FindFirstAliveCharacter(TArray<ABaseCharact
 
 void ACombatAIController::ComboFail()
 {
-	FailAttack();
+	FailAction();
 }
 
 void ACombatAIController::ComboSucceed()
 {
-	HitTarget();
+	if (!NextCombatAction.DelayDamage)
+	{
+		HitTarget();
+	}
 }
 
 void ACombatAIController::HitTarget()
 {
-	if (NextCombatAction == CombatAction::HEAL)
+	if (CurrentTarget)
 	{
-		float Heal = -40.f;
-		UGameplayStatics::ApplyDamage(GetCharacter(), Heal, this, GetCharacter(), nullptr);
-	}
-	else if (CurrentTarget)
-	{
-		if (NextCombatAction == CombatAction::MAGIC)
-		{
-			//TODO: implement multiplier?
-		}
-		else
-		{
-			//TODO: Calculate the damage
-			float Damage = 10.f;
-			UGameplayStatics::ApplyDamage(CurrentTarget, Damage, this, GetCharacter(), nullptr);
-		}
+		UGameplayStatics::ApplyDamage(CurrentTarget, NextCombatAction.BaseDamage, this, GetCharacter(), nullptr);
 	}
 }
 
-void ACombatAIController::CompleteAttack()
+void ACombatAIController::CompleteAction()
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::CompleteAttack"));
 	CombatStep = CombatStep::MOVE_TO_START_LOCATION;
 	MoveToLocation(InitialCombatPosition, .1f);
 }
 
-void ACombatAIController::OnCompleteMagic(UAnimMontage* AnimeMontage, bool bInterrupted)
+void ACombatAIController::OnActionComplete(UAnimMontage* AnimeMontage, bool bInterrupted)
 {
 	if (bInterrupted) return;
-	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::CompleteMagic"));
-	if (CurrentTarget)
+	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnActionComplete - %s"), *AnimeMontage->GetName());
+	if (CurrentTarget && NextCombatAction.DelayDamage)
 	{
-		float Damage = 40.f;
-		UGameplayStatics::ApplyDamage(CurrentTarget, Damage, this, GetCharacter(), nullptr);
+		UGameplayStatics::ApplyDamage(CurrentTarget, NextCombatAction.BaseDamage, this, GetCharacter(), nullptr);
 	}
-	CompleteAttack();
+	CompleteAction();
 }
 
-void ACombatAIController::OnAttackComplete(UAnimMontage* AnimeMontage, bool bInterrupted)
+void ACombatAIController::OnActionFail(UAnimMontage* AnimeMontage, bool bInterrupted)
 {
 	if (bInterrupted) return;
-	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnAttackComplete - %s"), *AnimeMontage->GetName());
-	CompleteAttack();
+	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnActionFail - %s"), *AnimeMontage->GetName());
+	CompleteAction();
 }
 
-void ACombatAIController::Attack()
+void ACombatAIController::Action()
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::Attack"));
 	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
 	if (ControlledCharacter == nullptr) return;
 
+	if (NextCombatAction.Animation == nullptr) return;
+
 	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
-	AnimInstance->Montage_Play(ControlledCharacter->GetAttackAnimation());
-	AnimInstance->Montage_SetEndDelegate(AttackCompleteDelegate, ControlledCharacter->GetAttackAnimation());
+	AnimInstance->Montage_Play(NextCombatAction.Animation);
+	AnimInstance->Montage_SetEndDelegate(ActionCompleteDelegate, NextCombatAction.Animation);
 }
 
-void ACombatAIController::FailAttack()
+void ACombatAIController::FailAction()
 {
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::FailAttack"));
 	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
@@ -181,38 +175,21 @@ void ACombatAIController::FailAttack()
 
 	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
 	AnimInstance->Montage_Play(ControlledCharacter->GetFlinchAnimation());
-	AnimInstance->Montage_SetEndDelegate(FailAttackCompleteDelegate, ControlledCharacter->GetFlinchAnimation());
+	AnimInstance->Montage_SetEndDelegate(FailActionCompleteDelegate, ControlledCharacter->GetFlinchAnimation());
 }
 
-
-void ACombatAIController::Heal()
+bool ACombatAIController::SetNextCombatAction(ActionSlotPosition CombatAction)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::Heal"));
-	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
-	if (ControlledCharacter == nullptr) return;
-
-	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
-	AnimInstance->Montage_Play(ControlledCharacter->GetHealAnimation());
-	AnimInstance->Montage_SetEndDelegate(HealCompleteDelegate, ControlledCharacter->GetHealAnimation());
+	FCombatActionSlot SelectedActionSlot = ActorCombatComponent->GetCombatActionSlot(CombatAction);
+	if (SelectedActionSlot.Enable)
+	{
+		NextCombatAction = SelectedActionSlot;
+		return true;
+	}
+	return false;
 }
 
-void ACombatAIController::Magic()
-{
-	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::Magic"));
-	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
-	if (ControlledCharacter == nullptr) return;
-
-	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
-	AnimInstance->Montage_Play(ControlledCharacter->GetMagicAnimation());
-	AnimInstance->Montage_SetEndDelegate(MagicCompleteDelegate, ControlledCharacter->GetMagicAnimation());
-}
-
-void ACombatAIController::SetNextCombatAction(CombatAction CombatAction)
-{
-	NextCombatAction = CombatAction;
-}
-
-CombatAction ACombatAIController::GetNextCombatAction()
+FCombatActionSlot ACombatAIController::GetNextCombatAction()
 {
 	return NextCombatAction;
 }

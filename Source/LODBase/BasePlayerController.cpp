@@ -67,9 +67,8 @@ void ABasePlayerController::AttackRight()
 			else
 			{
 				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
-				if (SelectedController)
+				if (SelectedController && SelectedController->SetNextCombatAction(ActionSlotPosition::RIGHT))
 				{
-					SelectedController->SetNextCombatAction(CombatAction::NONE);
 					MenuCharacterSelected = -1;
 					MenuWidget->SetSelectedCharacter(-1);
 				}
@@ -101,9 +100,8 @@ void ABasePlayerController::AttackLeft()
 			else
 			{
 				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
-				if (SelectedController)
+				if (SelectedController && SelectedController->SetNextCombatAction(ActionSlotPosition::LEFT))
 				{
-					SelectedController->SetNextCombatAction(CombatAction::HEAL);
 					MenuCharacterSelected = -1;
 					MenuWidget->SetSelectedCharacter(-1);
 				}
@@ -132,9 +130,8 @@ void ABasePlayerController::AttackDown()
 			else
 			{
 				ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
-				if (SelectedController)
+				if (SelectedController && SelectedController->SetNextCombatAction(ActionSlotPosition::CENTER))
 				{
-					SelectedController->SetNextCombatAction(CombatAction::MAGIC);
 					MenuCharacterSelected = -1;
 					MenuWidget->SetSelectedCharacter(-1);
 				}
@@ -149,6 +146,19 @@ void ABasePlayerController::AttackUp()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AttackUp()"))
 		AttackKeyPressed(TEXT("AttackUp"));
+	}
+	if (IsMenuOpen)
+	{
+		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
+		if (Orchestrator && MenuCharacterSelected != -1)
+		{
+			ACombatAIController* SelectedController = Cast<ACombatAIController>(Orchestrator->GetPlayerCharacters()[MenuCharacterSelected]->GetController());
+			if (SelectedController && SelectedController->SetNextCombatAction(ActionSlotPosition::DEFAULT))
+			{
+				MenuCharacterSelected = -1;
+				MenuWidget->SetSelectedCharacter(-1);
+			}
+		}
 	}
 }
 

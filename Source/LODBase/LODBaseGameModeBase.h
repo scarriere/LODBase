@@ -6,12 +6,17 @@
 #include "GameFramework/GameModeBase.h"
 #include "LODBaseGameModeBase.generated.h"
 
-/**
- * 
- */
+class UDataTable;
+
 UCLASS()
 class LODBASE_API ALODBaseGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+private:
+	UPROPERTY(EditAnywhere)
+	UDataTable* ActionSlotDataTable;
+
+public:
+	UDataTable* GetActionSlotDataTable();
 };

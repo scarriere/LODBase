@@ -8,6 +8,7 @@
 
 class ACombatAIController;
 class UWidgetComponent;
+class UCombatComponent;
 
 UCLASS()
 class LODBASE_API ABaseCharacter : public ACharacter
@@ -18,6 +19,9 @@ public:
 	ABaseCharacter();
 
 private:
+	UPROPERTY(EditAnywhere)
+	UCombatComponent* CombatComponent;
+
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* FlinchAnimation;
 
@@ -80,4 +84,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UAnimMontage* GetMagicAnimation();
+
+	UFUNCTION(BlueprintCallable)
+	UCombatComponent* GetCombatComponent();
 };
