@@ -107,21 +107,6 @@ UAnimMontage * ABaseCharacter::GetFlinchAnimation()
 	return FlinchAnimation;
 }
 
-UAnimMontage * ABaseCharacter::GetAttackAnimation()
-{
-	return AttackAnimation;
-}
-
-UAnimMontage * ABaseCharacter::GetHealAnimation()
-{
-	return HealAnimation;
-}
-
-UAnimMontage * ABaseCharacter::GetMagicAnimation()
-{
-	return MagicAnimation;
-}
-
 UCombatComponent* ABaseCharacter::GetCombatComponent()
 {
 	return CombatComponent;

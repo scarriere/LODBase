@@ -29,15 +29,6 @@ private:
 	UAnimMontage* DeathAnimation;
 
 	UPROPERTY(EditAnywhere)
-	UAnimMontage* AttackAnimation;
-
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* HealAnimation;
-
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* MagicAnimation;
-
-	UPROPERTY(EditAnywhere)
 	float MaxHealth = 100.f;
 
 	UPROPERTY(VisibleAnywhere)
@@ -75,15 +66,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	UAnimMontage* GetFlinchAnimation();
-
-	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetAttackAnimation();
-
-	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetHealAnimation();
-
-	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetMagicAnimation();
 
 	UFUNCTION(BlueprintCallable)
 	UCombatComponent* GetCombatComponent();
