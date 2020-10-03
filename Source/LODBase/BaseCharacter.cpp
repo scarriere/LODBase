@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DamageWidget.h"
 #include "CombatComponent.h"
+#include "BaseWeapon.h"
 
 ABaseCharacter::ABaseCharacter()
 {
@@ -29,6 +30,14 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
+
+	if (WeaponType)
+	{
+		Weapon = GetWorld()->SpawnActor<ABaseWeapon>(WeaponType, GetTransform());
+		Weapon->SetOwner(this);
+		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, false);
+		Weapon->AttachToComponent(GetMesh(), AttachmentRules, FName("WeaponRight"));
+	}
 }
 
 float ABaseCharacter::TakeDamage(float Damage, FDamageEvent const & DamageEvent, AController * EventInstigator, AActor * DamageCauser)

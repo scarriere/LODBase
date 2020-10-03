@@ -51,4 +51,6 @@ public:
 	void EncounterEnemy(ABaseCharacter* Enemy);
 
 	ABasePlayerController* GetDefaultController();
+
+	USpringArmComponent* GetCameraArm();
 };

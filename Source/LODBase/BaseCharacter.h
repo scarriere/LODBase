@@ -9,6 +9,7 @@
 class ACombatAIController;
 class UWidgetComponent;
 class UCombatComponent;
+class ABaseWeapon;
 
 UCLASS()
 class LODBASE_API ABaseCharacter : public ACharacter
@@ -39,6 +40,13 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UWidgetComponent* DamageWidgetComponent;
+
+	//TODO: Have inventory component
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<ABaseWeapon> WeaponType;
+
+	UPROPERTY(VisibleAnywhere)
+	ABaseWeapon* Weapon = nullptr;
 
 protected:
 	UPROPERTY(EditAnywhere)

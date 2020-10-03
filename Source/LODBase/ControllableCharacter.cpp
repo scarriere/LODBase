@@ -66,3 +66,8 @@ ABasePlayerController* AControllableCharacter::GetDefaultController()
 {
 	return DefaultController;
 }
+
+USpringArmComponent* AControllableCharacter::GetCameraArm()
+{
+	return CameraArm;
+}

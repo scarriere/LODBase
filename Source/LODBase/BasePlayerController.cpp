@@ -5,6 +5,8 @@
 #include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
 #include "BaseCharacter.h"
+#include "ControllableCharacter.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "CombatOrchestrator.h"
 #include "CombatWidget.h"
@@ -48,7 +50,7 @@ void ABasePlayerController::AttackRight()
 {
 	if (IsInCombo)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackRight()"))
+		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackRight()"))
 		AttackKeyPressed(TEXT("AttackRight"));
 	}
 	if (IsMenuOpen)
@@ -81,7 +83,7 @@ void ABasePlayerController::AttackLeft()
 {
 	if (IsInCombo)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackLeft()"))
+		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackLeft()"))
 		AttackKeyPressed(TEXT("AttackLeft"));
 	}
 	if (IsMenuOpen)
@@ -114,7 +116,7 @@ void ABasePlayerController::AttackDown()
 {
 	if (IsInCombo)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackDown()"))
+		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackDown()"))
 		AttackKeyPressed(TEXT("AttackDown"));
 	}
 	if (IsMenuOpen)
@@ -144,7 +146,7 @@ void ABasePlayerController::AttackUp()
 {
 	if (IsInCombo)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AttackUp()"))
+		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackUp()"))
 		AttackKeyPressed(TEXT("AttackUp"));
 	}
 	if (IsMenuOpen)
@@ -202,14 +204,14 @@ void ABasePlayerController::Jump()
 {
 	if (GetCharacter() != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Jump()"))
+		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("Jump()"))
 		GetCharacter()->Jump();
 	}
 }
 
 void ABasePlayerController::AttackKeyPressed(FName AttackAction)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AttackKeyPressed()"))
+	if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackKeyPressed()"))
 	IsInCombo = false;
 	if (CurrentAttackWidget)
 	{
@@ -218,7 +220,7 @@ void ABasePlayerController::AttackKeyPressed(FName AttackAction)
 
 	if (ComboAttackAction == AttackAction && (GetWorld()->GetRealTimeSeconds() - ComboStartTime) / ComboDuration > ComboPrecision)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Combo success"))
+		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("Combo success"))
 		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
 		if (Orchestrator)
 		{
@@ -227,7 +229,7 @@ void ABasePlayerController::AttackKeyPressed(FName AttackAction)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Combo Failed"))
+		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("Combo Failed"))
 		ACombatOrchestrator* Orchestrator = Cast<ACombatOrchestrator>(GetPawn());
 		if (Orchestrator)
 		{
@@ -254,7 +256,12 @@ void ABasePlayerController::Tick(float DeltaTime)
 
 	if (MoveDirection.Size() > 0.1f)
 	{
-		SetControlRotation(MoveDirection.Rotation());
+		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
+		float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
+
+		if(Verbose) UE_LOG(LogTemp, Warning, TEXT("ABasePlayerController::Tick CameraRotationZ %f"), CameraRotationZ)
+
+		SetControlRotation(MoveDirection.RotateAngleAxis(CameraRotationZ,FVector::UpVector).Rotation());
 		GetCharacter()->AddMovementInput(GetCharacter()->GetActorForwardVector() * MoveDirection.Size());
 	}
 	else
@@ -265,7 +272,7 @@ void ABasePlayerController::Tick(float DeltaTime)
 
 void ABasePlayerController::NotifyComboStart(float TotalDuration, TSubclassOf<UCombatWidget> WidgetType, FName AttackAction)
 {
-	UE_LOG(LogTemp, Warning, TEXT("NotifyComboStart()"))
+	if (Verbose) UE_LOG(LogTemp, Warning, TEXT("NotifyComboStart()"))
 	IsInCombo = true;
 	ComboDuration = TotalDuration;
 	ComboStartTime = GetWorld()->GetRealTimeSeconds();
@@ -297,7 +304,7 @@ void ABasePlayerController::UpdateAttackWidget()
 
 void ABasePlayerController::NotifyComboEnd()
 {
-	UE_LOG(LogTemp, Warning, TEXT("NotifyComboEnd()"))
+	if (Verbose) UE_LOG(LogTemp, Warning, TEXT("NotifyComboEnd()"))
 	if (IsInCombo)
 	{
 		IsInCombo = false;

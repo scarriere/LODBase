@@ -19,6 +19,9 @@ public:
 	ABasePlayerController();
 	
 private:
+	UPROPERTY(EditAnywhere)
+	bool Verbose = false;
+
 	FVector MoveDirection;
 
 	UPROPERTY(VisibleAnywhere)
