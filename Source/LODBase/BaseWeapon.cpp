@@ -11,4 +11,6 @@ ABaseWeapon::ABaseWeapon()
 
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon Mesh"));
 	WeaponMesh->SetupAttachment(RootComponent);
+
+	WeaponMesh->SetCollisionProfileName(TEXT("NoCollision"));
 }
