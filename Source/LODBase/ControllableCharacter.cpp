@@ -35,6 +35,7 @@ void AControllableCharacter::StartCombat(ACombatOrchestrator* Orchestractor)
 	DefaultController->UnPossess();
 	DefaultController->Possess(Orchestractor);
 	DefaultController->SetViewTarget(Orchestractor);
+	DefaultController->SetControllerState(ControllerState::COMBAT);
 	CombatAIController->Possess(this);
 }
 
@@ -43,6 +44,7 @@ void AControllableCharacter::StopCombat()
 	CombatAIController->UnPossess();
 	DefaultController->Possess(this);
 	DefaultController->SetViewTarget(this);
+	DefaultController->SetControllerState(ControllerState::FREE_WALK);
 }
 
 void AControllableCharacter::EncounterEnemy(ABaseCharacter * Enemy)

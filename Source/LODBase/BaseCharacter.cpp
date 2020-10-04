@@ -81,7 +81,6 @@ float ABaseCharacter::Flinch()
 
 float ABaseCharacter::Died()
 {
-	//TODO: Add timer for the actor to get destroy
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	AAIController* AIController = Cast<AAIController>(GetController());
 	if (AIController)
@@ -89,6 +88,13 @@ float ABaseCharacter::Died()
 		AIController->ClearFocus(EAIFocusPriority::Gameplay);
 	}
 	return PlayAnimMontage(DeathAnimation);
+}
+
+float ABaseCharacter::Revive()
+{
+	CurrentHealth = 1;
+	if (ReviveAnimation == nullptr) return 0.f;
+	return PlayAnimMontage(ReviveAnimation);
 }
 
 bool ABaseCharacter::IsAlive()

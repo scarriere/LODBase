@@ -227,6 +227,10 @@ void ACombatOrchestrator::EndCombat(bool PlayerWon)
 		{
 			ACombatAIController* PlayerController = Cast<ACombatAIController>(Character->GetController());
 			PlayerController->StopCombat();
+			if (!Character->IsAlive())
+			{
+				Character->Revive();
+			}
 		}
 		PlayerCharacter->StopCombat();
 		SetLifeSpan(2.f);

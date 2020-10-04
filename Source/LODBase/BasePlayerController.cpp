@@ -12,11 +12,14 @@
 #include "CombatWidget.h"
 #include "CombatMenuWidget.h"
 #include "CombatAIController.h"
+#include "DialogComponent.h"
 
 ABasePlayerController::ABasePlayerController()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bAutoManageActiveCameraTarget = false;
+
+	DialogComponent = CreateDefaultSubobject<UDialogComponent>(TEXT("Dialog Component"));
 }
 
 void ABasePlayerController::BeginPlay()
@@ -48,6 +51,7 @@ void ABasePlayerController::MoveRight(float AxisValue)
 
 void ABasePlayerController::AttackRight()
 {
+	if (State != ControllerState::COMBAT) return;
 	if (IsInCombo)
 	{
 		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackRight()"))
@@ -81,6 +85,7 @@ void ABasePlayerController::AttackRight()
 
 void ABasePlayerController::AttackLeft()
 {
+	if (State != ControllerState::COMBAT) return;
 	if (IsInCombo)
 	{
 		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackLeft()"))
@@ -114,6 +119,7 @@ void ABasePlayerController::AttackLeft()
 
 void ABasePlayerController::AttackDown()
 {
+	if (State != ControllerState::COMBAT) return;
 	if (IsInCombo)
 	{
 		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackDown()"))
@@ -144,6 +150,7 @@ void ABasePlayerController::AttackDown()
 
 void ABasePlayerController::AttackUp()
 {
+	if (State != ControllerState::COMBAT) return;
 	if (IsInCombo)
 	{
 		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("AttackUp()"))
@@ -166,6 +173,7 @@ void ABasePlayerController::AttackUp()
 
 void ABasePlayerController::OpenCombatMenu()
 {
+	if (State != ControllerState::COMBAT) return;
 	if (IsInMenuInterval)
 	{
 		IsInMenuInterval = false;
@@ -202,7 +210,11 @@ void ABasePlayerController::OpenCombatMenu()
 
 void ABasePlayerController::Jump()
 {
-	if (GetCharacter() != nullptr)
+	if (State == ControllerState::DIALOG)
+	{
+		State = DialogComponent->NextDialogText() ? ControllerState::DIALOG : ControllerState::FREE_WALK;
+	}
+	else if (State == ControllerState::FREE_WALK && GetCharacter() != nullptr)
 	{
 		if (Verbose) UE_LOG(LogTemp, Warning, TEXT("Jump()"))
 		GetCharacter()->Jump();
@@ -242,31 +254,36 @@ void ABasePlayerController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsInCombo)
+	if (State == ControllerState::COMBAT)
 	{
-		UpdateAttackWidget();
+		if (IsInCombo)
+		{
+			UpdateAttackWidget();
+		}
+
+		if (IsInMenuInterval)
+		{
+			UpdateMenuWidget();
+		}
 	}
-
-	if (IsInMenuInterval)
+	else if (State == ControllerState::FREE_WALK)
 	{
-		UpdateMenuWidget();
-	}
+		if (GetCharacter() == nullptr) return;
 
-	if (GetCharacter() == nullptr) return;
+		if (MoveDirection.Size() > 0.1f)
+		{
+			AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
+			float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
 
-	if (MoveDirection.Size() > 0.1f)
-	{
-		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
-		float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
+			if(Verbose) UE_LOG(LogTemp, Warning, TEXT("ABasePlayerController::Tick CameraRotationZ %f"), CameraRotationZ)
 
-		if(Verbose) UE_LOG(LogTemp, Warning, TEXT("ABasePlayerController::Tick CameraRotationZ %f"), CameraRotationZ)
-
-		SetControlRotation(MoveDirection.RotateAngleAxis(CameraRotationZ,FVector::UpVector).Rotation());
-		GetCharacter()->AddMovementInput(GetCharacter()->GetActorForwardVector() * MoveDirection.Size());
-	}
-	else
-	{
-		SetControlRotation(GetCharacter()->GetActorRotation());
+			SetControlRotation(MoveDirection.RotateAngleAxis(CameraRotationZ,FVector::UpVector).Rotation());
+			GetCharacter()->AddMovementInput(GetCharacter()->GetActorForwardVector() * MoveDirection.Size());
+		}
+		else
+		{
+			SetControlRotation(GetCharacter()->GetActorRotation());
+		}
 	}
 }
 
@@ -350,4 +367,16 @@ void ABasePlayerController::UpdateMenuWidget()
 	{
 		MenuTimerWidget->UpdateElapseTime(GetWorld()->GetRealTimeSeconds() - MenuStartTime);
 	}
+}
+
+void ABasePlayerController::SetControllerState(ControllerState NewState)
+{
+	State = NewState;
+}
+
+void ABasePlayerController::StartDialogs(TArray<FText> Dialogs)
+{
+	State = ControllerState::DIALOG;
+	DialogComponent->AddDialogTexts(Dialogs);
+	DialogComponent->NextDialogText();
 }

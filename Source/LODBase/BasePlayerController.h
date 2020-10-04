@@ -9,6 +9,14 @@
 class ABaseCharacter;
 class UCombatWidget;
 class UCombatMenuWidget;
+class UDialogComponent;
+
+enum class ControllerState
+{
+	FREE_WALK,
+	COMBAT,
+	DIALOG,
+};
 
 UCLASS()
 class LODBASE_API ABasePlayerController : public APlayerController
@@ -21,6 +29,11 @@ public:
 private:
 	UPROPERTY(EditAnywhere)
 	bool Verbose = false;
+
+	ControllerState State = ControllerState::FREE_WALK;
+
+	UPROPERTY(EditAnywhere, Category = "Components")
+	UDialogComponent* DialogComponent;
 
 	FVector MoveDirection;
 
@@ -78,4 +91,7 @@ public:
 	void NotifyMenuStart(float MenuDuration);
 	void NotifyMenuEnd();
 	void UpdateMenuWidget();
+
+	void SetControllerState(ControllerState NewState);
+	void StartDialogs(TArray<FText> Dialogs);
 };

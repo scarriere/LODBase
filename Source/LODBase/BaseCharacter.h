@@ -24,10 +24,13 @@ private:
 	UCombatComponent* CombatComponent;
 
 	UPROPERTY(EditAnywhere)
-	UAnimMontage* FlinchAnimation;
+	UAnimMontage* FlinchAnimation = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	UAnimMontage* DeathAnimation;
+	UAnimMontage* DeathAnimation = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* ReviveAnimation = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	float MaxHealth = 100.f;
@@ -65,6 +68,7 @@ public:
 
 	float Flinch();
 	float Died();
+	float Revive();
 
 	bool IsAlive();
 	bool OnPlayerSide();
