@@ -10,6 +10,8 @@ class ABaseCharacter;
 class UCombatWidget;
 class UCombatMenuWidget;
 class UDialogComponent;
+class AInteractionActor;
+class UInventoryComponent;
 
 enum class ControllerState
 {
@@ -35,6 +37,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Components")
 	UDialogComponent* DialogComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Components")
+	UInventoryComponent* InventoryComponent;
+
 	FVector MoveDirection;
 
 	UPROPERTY(VisibleAnywhere)
@@ -56,6 +61,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TMap<TSubclassOf<UCombatWidget>, UCombatWidget*> CombatWidgetMap;
+
+	AInteractionActor* InteractingObject = nullptr;
 
 	bool IsInMenuInterval = false;
 	bool IsMenuOpen = false;
@@ -94,4 +101,8 @@ public:
 
 	void SetControllerState(ControllerState NewState);
 	void StartDialogs(TArray<FText> Dialogs);
+	void StartInteract(AInteractionActor* Interactor);
+	void StopInteract();
+
+	UInventoryComponent* GetInventoryComponent();
 };

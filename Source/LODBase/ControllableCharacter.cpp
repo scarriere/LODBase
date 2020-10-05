@@ -10,6 +10,7 @@
 #include "BasePlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "CombatOrchestrator.h"
+#include "Components/WidgetComponent.h"
 
 AControllableCharacter::AControllableCharacter()
 {
@@ -20,6 +21,11 @@ AControllableCharacter::AControllableCharacter()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(CameraArm);
+
+	InteractionWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Interaction Widget"));
+	InteractionWidgetComponent->SetupAttachment(RootComponent);
+	InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	InteractionWidgetComponent->SetVisibility(false);
 }
 
 void AControllableCharacter::BeginPlay()
@@ -72,4 +78,14 @@ ABasePlayerController* AControllableCharacter::GetDefaultController()
 USpringArmComponent* AControllableCharacter::GetCameraArm()
 {
 	return CameraArm;
+}
+
+void AControllableCharacter::StartInteraction()
+{
+	InteractionWidgetComponent->SetVisibility(true);
+}
+
+void AControllableCharacter::StopInteraction()
+{
+	InteractionWidgetComponent->SetVisibility(false);
 }

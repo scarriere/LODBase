@@ -13,6 +13,8 @@
 #include "CombatMenuWidget.h"
 #include "CombatAIController.h"
 #include "DialogComponent.h"
+#include "InteractionActor.h"
+#include "InventoryComponent.h"
 
 ABasePlayerController::ABasePlayerController()
 {
@@ -20,6 +22,7 @@ ABasePlayerController::ABasePlayerController()
 	bAutoManageActiveCameraTarget = false;
 
 	DialogComponent = CreateDefaultSubobject<UDialogComponent>(TEXT("Dialog Component"));
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
 }
 
 void ABasePlayerController::BeginPlay()
@@ -173,6 +176,15 @@ void ABasePlayerController::AttackUp()
 
 void ABasePlayerController::OpenCombatMenu()
 {
+	if (State == ControllerState::FREE_WALK && InteractingObject != nullptr)
+	{
+		if (InteractingObject->Interact(this))
+		{
+			InteractingObject = nullptr;
+			AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
+			ControllableCharacter->StopInteraction();
+		}
+	}
 	if (State != ControllerState::COMBAT) return;
 	if (IsInMenuInterval)
 	{
@@ -379,4 +391,29 @@ void ABasePlayerController::StartDialogs(TArray<FText> Dialogs)
 	State = ControllerState::DIALOG;
 	DialogComponent->AddDialogTexts(Dialogs);
 	DialogComponent->NextDialogText();
+}
+
+void ABasePlayerController::StartInteract(AInteractionActor* Interactor)
+{
+	if (State == ControllerState::FREE_WALK && InteractingObject == nullptr)
+	{
+		InteractingObject = Interactor;
+		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
+		ControllableCharacter->StartInteraction();
+	}
+}
+
+void ABasePlayerController::StopInteract()
+{
+	if (State == ControllerState::FREE_WALK && InteractingObject != nullptr)
+	{
+		InteractingObject = nullptr;
+		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
+		ControllableCharacter->StopInteraction();
+	}
+}
+
+UInventoryComponent* ABasePlayerController::GetInventoryComponent()
+{
+	return InventoryComponent;
 }

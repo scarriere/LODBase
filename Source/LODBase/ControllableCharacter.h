@@ -41,6 +41,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	ABasePlayerController* DefaultController = nullptr;
 
+	UPROPERTY(EditAnywhere)
+	UWidgetComponent* InteractionWidgetComponent;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -53,4 +56,7 @@ public:
 	ABasePlayerController* GetDefaultController();
 
 	USpringArmComponent* GetCameraArm();
+
+	void StartInteraction();
+	void StopInteraction();
 };
