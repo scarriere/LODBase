@@ -10,10 +10,15 @@ AInteractionActor::AInteractionActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+
 	TriggerSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger Sphere"));
 	TriggerSphere->SetupAttachment(RootComponent);
 	TriggerSphere->SetSphereRadius(TriggerSphereRadius);
 	TriggerSphere->SetCollisionProfileName(TEXT("Trigger"));
+
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(RootComponent);
 }
 
 void AInteractionActor::BeginPlay()
