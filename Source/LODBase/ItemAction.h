@@ -6,6 +6,8 @@
 #include "InteractionActor.h"
 #include "ItemAction.generated.h"
 
+class AMovingActor;
+
 USTRUCT()
 struct FActionDefinition
 {
@@ -29,6 +31,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	FText CompletedText;
+
+	UPROPERTY(EditAnywhere)
+	TArray<AMovingActor*> MovingActors;
 
 public:
 	virtual bool Interact(ABasePlayerController* PlayerController);

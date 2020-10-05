@@ -4,6 +4,7 @@
 #include "ItemAction.h"
 #include "BasePlayerController.h"
 #include "InventoryComponent.h"
+#include "MovingActor.h"
 
 bool AItemAction::Interact(ABasePlayerController* PlayerController)
 {
@@ -17,9 +18,19 @@ bool AItemAction::Interact(ABasePlayerController* PlayerController)
 			return false;
 		}
 	}
-	TArray<FText> Dialogs;
-	Dialogs.Add(CompletedText);
-	PlayerController->StartDialogs(Dialogs);
+
+	if (!CompletedText.IsEmpty())
+	{
+		TArray<FText> Dialogs;
+		Dialogs.Add(CompletedText);
+		PlayerController->StartDialogs(Dialogs);
+	}
+
+	for (AMovingActor* MovingActor : MovingActors)
+	{
+		MovingActor->StartMovement();
+	}
+
 	GetWorld()->DestroyActor(this);
 	return true;
 }
