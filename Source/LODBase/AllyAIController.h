@@ -19,7 +19,7 @@ private:
 	ABaseCharacter* FollowCharacter = nullptr;
 	
 	UPROPERTY(EditAnywhere)
-	float FollowDistance = 50.f;
+	float FollowDistance = 100.f;
 
 	UPROPERTY(EditAnywhere)
 	float FollowInterval = 1.f;

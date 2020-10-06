@@ -15,6 +15,9 @@ public:
 	AEnemyAIController();
 
 private:
+	UPROPERTY(EditAnywhere)
+	bool Verbose = false;
+
 	UPROPERTY(VisibleAnywhere)
 	FVector InitialLocation;
 

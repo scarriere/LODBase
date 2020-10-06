@@ -233,7 +233,8 @@ void ACombatOrchestrator::EndCombat(bool PlayerWon)
 			}
 		}
 		PlayerCharacter->StopCombat();
-		SetLifeSpan(2.f);
+		GetWorld()->DestroyActor(this);
+		//SetLifeSpan(2.f);
 	}
 	else
 	{

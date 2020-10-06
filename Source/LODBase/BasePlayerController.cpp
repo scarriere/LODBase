@@ -44,12 +44,24 @@ void ABasePlayerController::BeginPlay()
 
 void ABasePlayerController::MoveForward(float AxisValue)
 {
-	MoveDirection.X = AxisValue;
+	if (State == ControllerState::FREE_WALK)
+	{
+		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
+		float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
+		FRotator CameraFlatRotation(0.f, CameraRotationZ, 0.f);
+		GetCharacter()->AddMovementInput(UKismetMathLibrary::GetForwardVector(CameraFlatRotation), AxisValue);
+	}
 }
 
 void ABasePlayerController::MoveRight(float AxisValue)
 {
-	MoveDirection.Y = AxisValue;
+	if (State == ControllerState::FREE_WALK)
+	{
+		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
+		float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
+		FRotator CameraFlatRotation(0.f, CameraRotationZ, 0.f);
+		GetCharacter()->AddMovementInput(UKismetMathLibrary::GetRightVector(CameraFlatRotation), AxisValue);
+	}
 }
 
 void ABasePlayerController::AttackRight()
@@ -280,22 +292,6 @@ void ABasePlayerController::Tick(float DeltaTime)
 	}
 	else if (State == ControllerState::FREE_WALK)
 	{
-		if (GetCharacter() == nullptr) return;
-
-		if (MoveDirection.Size() > 0.1f)
-		{
-			AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
-			float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
-
-			if(Verbose) UE_LOG(LogTemp, Warning, TEXT("ABasePlayerController::Tick CameraRotationZ %f"), CameraRotationZ)
-
-			SetControlRotation(MoveDirection.RotateAngleAxis(CameraRotationZ,FVector::UpVector).Rotation());
-			GetCharacter()->AddMovementInput(GetCharacter()->GetActorForwardVector() * MoveDirection.Size());
-		}
-		else
-		{
-			SetControlRotation(GetCharacter()->GetActorRotation());
-		}
 	}
 }
 

@@ -161,7 +161,6 @@ void ACombatAIController::Action()
 	if (ControlledCharacter == nullptr) return;
 
 	if (NextCombatAction.Animation == nullptr) return;
-
 	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
 	AnimInstance->Montage_Play(NextCombatAction.Animation);
 	AnimInstance->Montage_SetEndDelegate(ActionCompleteDelegate, NextCombatAction.Animation);

@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "CombatOrchestrator.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AControllableCharacter::AControllableCharacter()
 {
@@ -26,6 +27,10 @@ AControllableCharacter::AControllableCharacter()
 	InteractionWidgetComponent->SetupAttachment(RootComponent);
 	InteractionWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	InteractionWidgetComponent->SetVisibility(false);
+
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
 }
 
 void AControllableCharacter::BeginPlay()
@@ -38,6 +43,8 @@ void AControllableCharacter::BeginPlay()
 
 void AControllableCharacter::StartCombat(ACombatOrchestrator* Orchestractor)
 {
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	bUseControllerRotationYaw = true;
 	DefaultController->UnPossess();
 	DefaultController->Possess(Orchestractor);
 	DefaultController->SetViewTarget(Orchestractor);
@@ -47,6 +54,8 @@ void AControllableCharacter::StartCombat(ACombatOrchestrator* Orchestractor)
 
 void AControllableCharacter::StopCombat()
 {
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 	CombatAIController->UnPossess();
 	DefaultController->Possess(this);
 	DefaultController->SetViewTarget(this);
