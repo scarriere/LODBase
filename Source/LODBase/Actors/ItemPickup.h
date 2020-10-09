@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InteractionActor.h"
+#include "../InteractionActor.h"
 #include "ItemPickup.generated.h"
 
 UCLASS()

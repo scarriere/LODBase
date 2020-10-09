@@ -21,7 +21,14 @@ void AMovingActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitialTransform = MovingMesh->GetRelativeTransform();
+	if (MovingActor == nullptr)
+	{
+		InitialTransform = MovingMesh->GetRelativeTransform();
+	}
+	else
+	{
+		InitialTransform = MovingActor->GetActorTransform();
+	}
 }
 
 void AMovingActor::Tick(float DeltaTime)
@@ -31,8 +38,18 @@ void AMovingActor::Tick(float DeltaTime)
 	if (Moving)
 	{
 		MovingTime = FMath::Clamp(MovingTime + DeltaTime, 0.f, Time);
-		FTransform NewTransform = UKismetMathLibrary::TLerp(InitialTransform, TargetTransformation->GetRelativeTransform(), MovingTime / Time);
-		MovingMesh->SetRelativeTransform(NewTransform);
+
+		if (MovingActor == nullptr)
+		{
+			FTransform NewTransform = UKismetMathLibrary::TLerp(InitialTransform, TargetTransformation->GetRelativeTransform(), MovingTime / Time);
+			MovingMesh->SetRelativeTransform(NewTransform);
+		}
+		else
+		{
+
+			FTransform NewTransform = UKismetMathLibrary::TLerp(InitialTransform, UKismetMathLibrary::ComposeTransforms(TargetTransformation->GetRelativeTransform(), this->GetActorTransform()), MovingTime / Time);
+			MovingActor->SetActorTransform(NewTransform);
+		}
 
 		if (MovingTime >= Time)
 		{

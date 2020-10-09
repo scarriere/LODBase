@@ -2,8 +2,8 @@
 
 
 #include "ItemPickup.h"
-#include "BasePlayerController.h"
-#include "InventoryComponent.h"
+#include "../BasePlayerController.h"
+#include "../InventoryComponent.h"
 
 bool AItemPickup::Interact(ABasePlayerController* PlayerController)
 {

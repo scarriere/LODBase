@@ -2,8 +2,8 @@
 
 
 #include "ItemAction.h"
-#include "BasePlayerController.h"
-#include "InventoryComponent.h"
+#include "../BasePlayerController.h"
+#include "../InventoryComponent.h"
 #include "MovingActor.h"
 
 bool AItemAction::Interact(ABasePlayerController* PlayerController)

@@ -22,6 +22,9 @@ private:
 	float MovingTime = 0.f;
 
 	UPROPERTY(EditAnywhere)
+	AActor* MovingActor = nullptr;
+
+	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* MovingMesh = nullptr;
 
 	UPROPERTY(EditAnywhere)
