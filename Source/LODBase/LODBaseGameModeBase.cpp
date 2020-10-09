@@ -3,7 +3,7 @@
 
 #include "LODBaseGameModeBase.h"
 
-UDataTable* ALODBaseGameModeBase::GetActionSlotDataTable()
+UDataTable* ALODBaseGameModeBase::GetCombatActionDataTable()
 {
-	return ActionSlotDataTable;
+	return CombatActionDataTable;
 }

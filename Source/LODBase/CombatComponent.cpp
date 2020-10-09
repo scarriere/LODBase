@@ -4,10 +4,17 @@
 #include "CombatComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "LODBaseGameModeBase.h"
+#include "Data/CombatAction.h"
+#include "Components/CombatActionSlot.h"
 
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	DefaultActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Default Slot"));
+	LeftActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Left Slot"));
+	CenterActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Center Slot"));
+	RightActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Right Slot"));
 }
 
 void UCombatComponent::BeginPlay()
@@ -15,33 +22,22 @@ void UCombatComponent::BeginPlay()
 	ALODBaseGameModeBase* GameMode = Cast<ALODBaseGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (GameMode == nullptr) return;
 
-	UDataTable* ActionSlotTable = GameMode->GetActionSlotDataTable();
-	if (ActionSlotTable == nullptr) return;
+	UDataTable* CombatActionTable = GameMode->GetCombatActionDataTable();
+	if (CombatActionTable == nullptr) return;
 
 	static const FString ContextString(TEXT("UCombatComponent"));
-	FCombatActionSlot* DefaultActionSlotRef = ActionSlotTable->FindRow<FCombatActionSlot>(DefaultActionSlotKey, ContextString, false);
-	if (DefaultActionSlotRef != nullptr)
+
+	for (FActionSlotMapping InitialSlotMapping : InitialSlotMappings)
 	{
-		DefaultActionSlot = *DefaultActionSlotRef;
-	}
-	FCombatActionSlot* LeftActionSlotRef = ActionSlotTable->FindRow<FCombatActionSlot>(LeftActionSlotKey, ContextString, false);
-	if (LeftActionSlotRef != nullptr)
-	{
-		LeftActionSlot = *LeftActionSlotRef;
-	}
-	FCombatActionSlot* RightActionSlotRef = ActionSlotTable->FindRow<FCombatActionSlot>(RightActionSlotKey, ContextString, false);
-	if (RightActionSlotRef != nullptr)
-	{
-		RightActionSlot = *RightActionSlotRef;
-	}
-	FCombatActionSlot* CenterActionSlotRef = ActionSlotTable->FindRow<FCombatActionSlot>(CenterActionSlotKey, ContextString, false);
-	if (CenterActionSlotRef != nullptr)
-	{
-		CenterActionSlot = *CenterActionSlotRef;
+		FCombatAction* InitialActionRef = CombatActionTable->FindRow<FCombatAction>(InitialSlotMapping.CombatActionKey, ContextString, false);
+		if (InitialActionRef != nullptr)
+		{
+			GetCombatActionSlot(InitialSlotMapping.SlotPosition)->SetCombatAction(*InitialActionRef);
+		}
 	}
 }
 
-FCombatActionSlot UCombatComponent::GetCombatActionSlot(ActionSlotPosition ActionSlotPosition)
+UCombatActionSlot* UCombatComponent::GetCombatActionSlot(ActionSlotPosition ActionSlotPosition)
 {
 	switch (ActionSlotPosition)
 	{
@@ -54,4 +50,12 @@ FCombatActionSlot UCombatComponent::GetCombatActionSlot(ActionSlotPosition Actio
 		default:
 			return DefaultActionSlot;
 	}
+}
+
+void UCombatComponent::RefreshSlots()
+{
+	DefaultActionSlot->DecreaseCooldown(1);
+	LeftActionSlot->DecreaseCooldown(1);
+	CenterActionSlot->DecreaseCooldown(1);
+	RightActionSlot->DecreaseCooldown(1);
 }

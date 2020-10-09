@@ -15,8 +15,8 @@ class LODBASE_API ALODBaseGameModeBase : public AGameModeBase
 	
 private:
 	UPROPERTY(EditAnywhere)
-	UDataTable* ActionSlotDataTable;
+	UDataTable* CombatActionDataTable;
 
 public:
-	UDataTable* GetActionSlotDataTable();
+	UDataTable* GetCombatActionDataTable();
 };

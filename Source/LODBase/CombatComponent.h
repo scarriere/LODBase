@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Engine/DataTable.h"
 #include "CombatComponent.generated.h"
 
+class UCombatActionSlot;
+
 UENUM(BlueprintType)
-enum ActionSlotPosition
+enum class ActionSlotPosition : uint8
 {
 	DEFAULT,
 	LEFT,
@@ -17,30 +18,15 @@ enum ActionSlotPosition
 };
 
 USTRUCT(BlueprintType)
-struct FCombatActionSlot : public FTableRowBase
+struct FActionSlotMapping
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FText Name;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool Enable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	bool MoveToTarget;
-		
 	UPROPERTY(EditAnywhere)
-	bool TargetSelf;
+	ActionSlotPosition SlotPosition;
 
 	UPROPERTY(EditAnywhere)
-	bool DelayDamage;
-
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* Animation = nullptr;
-
-	UPROPERTY(EditAnywhere)
-	float BaseDamage;
+	FName CombatActionKey;
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -53,33 +39,26 @@ public:
 
 private:
 	UPROPERTY(EditAnywhere)
-	FName DefaultActionSlotKey;
+	TArray<FActionSlotMapping> InitialSlotMappings;
 
-	UPROPERTY(EditAnywhere)
-	FName LeftActionSlotKey;
+	UPROPERTY(VisibleAnywhere)
+	UCombatActionSlot* DefaultActionSlot;
 
-	UPROPERTY(EditAnywhere)
-	FName CenterActionSlotKey;
+	UPROPERTY(VisibleAnywhere)
+	UCombatActionSlot* LeftActionSlot;
 
-	UPROPERTY(EditAnywhere)
-	FName RightActionSlotKey;
+	UPROPERTY(VisibleAnywhere)
+	UCombatActionSlot* CenterActionSlot;
 
-	UPROPERTY(EditAnywhere)
-	FCombatActionSlot DefaultActionSlot;
-
-	UPROPERTY(EditAnywhere)
-	FCombatActionSlot LeftActionSlot;
-
-	UPROPERTY(EditAnywhere)
-	FCombatActionSlot CenterActionSlot;
-
-	UPROPERTY(EditAnywhere)
-	FCombatActionSlot RightActionSlot;
+	UPROPERTY(VisibleAnywhere)
+	UCombatActionSlot* RightActionSlot;
 
 protected:
 	virtual void BeginPlay() override;
 
 public:
 	UFUNCTION(BlueprintCallable)
-	FCombatActionSlot GetCombatActionSlot(ActionSlotPosition ActionSlotPosition);
+	UCombatActionSlot* GetCombatActionSlot(ActionSlotPosition ActionSlotPosition);
+
+	void RefreshSlots();
 };

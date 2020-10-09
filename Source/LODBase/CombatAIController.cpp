@@ -6,6 +6,7 @@
 #include "CombatComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/CombatActionSlot.h"
 
 void ACombatAIController::BeginPlay()
 {
@@ -72,11 +73,14 @@ void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TA
 		return;
 	}
 
+	ControlledCharacter->GetCombatComponent()->RefreshSlots();
+
 	ABaseCharacter* Target = ControlledCharacter->OnPlayerSide() ? FindFirstAliveCharacter(EnemyCharacters) : FindFirstAliveCharacter(PlayerCharacters);
 	if (Target == nullptr) return;
 
+	FCombatAction CombatAction = NextCombatAction->GetCombatAction();
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartTurn - AI Turn Start for Pawn %s attacking %s"), *GetPawn()->GetName(), *Target->GetName())
-	if (NextCombatAction.TargetSelf)
+	if (CombatAction.TargetSelf)
 	{
 		CurrentTarget = GetCharacter();
 	}
@@ -85,7 +89,7 @@ void ACombatAIController::StartTurn(TArray<ABaseCharacter*> PlayerCharacters, TA
 		CurrentTarget = Target;
 		SetFocus(Target, EAIFocusPriority::Gameplay);
 	}
-	if (NextCombatAction.MoveToTarget)
+	if (CombatAction.MoveToTarget)
 	{
 		CombatStep = CombatStep::MOVE_TO_TARGET;
 		MoveToActor(Target, 10.f);
@@ -115,7 +119,7 @@ void ACombatAIController::ComboFail()
 
 void ACombatAIController::ComboSucceed()
 {
-	if (!NextCombatAction.DelayDamage)
+	if (!NextCombatAction->GetCombatAction().DelayDamage)
 	{
 		HitTarget();
 	}
@@ -125,7 +129,7 @@ void ACombatAIController::HitTarget()
 {
 	if (CurrentTarget)
 	{
-		UGameplayStatics::ApplyDamage(CurrentTarget, NextCombatAction.BaseDamage, this, GetCharacter(), nullptr);
+		UGameplayStatics::ApplyDamage(CurrentTarget, NextCombatAction->GetCombatAction().BaseDamage, this, GetCharacter(), nullptr);
 	}
 }
 
@@ -140,9 +144,10 @@ void ACombatAIController::OnActionComplete(UAnimMontage* AnimeMontage, bool bInt
 {
 	if (bInterrupted) return;
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::OnActionComplete - %s"), *AnimeMontage->GetName());
-	if (CurrentTarget && NextCombatAction.DelayDamage)
+	FCombatAction CombatAction = NextCombatAction->GetCombatAction();
+	if (CurrentTarget && CombatAction.DelayDamage)
 	{
-		UGameplayStatics::ApplyDamage(CurrentTarget, NextCombatAction.BaseDamage, this, GetCharacter(), nullptr);
+		UGameplayStatics::ApplyDamage(CurrentTarget, CombatAction.BaseDamage, this, GetCharacter(), nullptr);
 	}
 	CompleteAction();
 }
@@ -160,10 +165,12 @@ void ACombatAIController::Action()
 	ABaseCharacter* ControlledCharacter = Cast<ABaseCharacter>(GetCharacter());
 	if (ControlledCharacter == nullptr) return;
 
-	if (NextCombatAction.Animation == nullptr) return;
+	FCombatAction CombatAction = NextCombatAction->UseSlot();
+	if (CombatAction.Animation == nullptr) return;
+
 	UAnimInstance* AnimInstance = ControlledCharacter->GetMesh()->GetAnimInstance();
-	AnimInstance->Montage_Play(NextCombatAction.Animation);
-	AnimInstance->Montage_SetEndDelegate(ActionCompleteDelegate, NextCombatAction.Animation);
+	AnimInstance->Montage_Play(CombatAction.Animation);
+	AnimInstance->Montage_SetEndDelegate(ActionCompleteDelegate, CombatAction.Animation);
 }
 
 void ACombatAIController::FailAction()
@@ -179,8 +186,8 @@ void ACombatAIController::FailAction()
 
 bool ACombatAIController::SetNextCombatAction(ActionSlotPosition CombatAction)
 {
-	FCombatActionSlot SelectedActionSlot = ActorCombatComponent->GetCombatActionSlot(CombatAction);
-	if (SelectedActionSlot.Enable)
+	UCombatActionSlot* SelectedActionSlot = ActorCombatComponent->GetCombatActionSlot(CombatAction);
+	if (SelectedActionSlot->IsReady())
 	{
 		NextCombatAction = SelectedActionSlot;
 		return true;
@@ -188,7 +195,7 @@ bool ACombatAIController::SetNextCombatAction(ActionSlotPosition CombatAction)
 	return false;
 }
 
-FCombatActionSlot ACombatAIController::GetNextCombatAction()
+UCombatActionSlot* ACombatAIController::GetNextCombatAction()
 {
 	return NextCombatAction;
 }

@@ -26,7 +26,7 @@ private:
 	FVector InitialCombatPosition;
 	APawn* CurrentTarget = nullptr;
 	UCombatComponent* ActorCombatComponent;
-	FCombatActionSlot NextCombatAction;
+	UCombatActionSlot* NextCombatAction;
 
 	ABaseCharacter* FindFirstAliveCharacter(TArray<ABaseCharacter*> Characters);
 
@@ -54,7 +54,7 @@ public:
 	bool SetNextCombatAction(ActionSlotPosition CombatAction);
 
 	UFUNCTION(BlueprintCallable)
-	FCombatActionSlot GetNextCombatAction();
+	UCombatActionSlot* GetNextCombatAction();
 
 	DECLARE_DELEGATE(EndTurn)
 	EndTurn EndTurnFunc;
