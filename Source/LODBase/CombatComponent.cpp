@@ -10,15 +10,15 @@
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-
-	DefaultActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Default Slot"));
-	LeftActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Left Slot"));
-	CenterActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Center Slot"));
-	RightActionSlot = CreateDefaultSubobject<UCombatActionSlot>(TEXT("Right Slot"));
 }
 
 void UCombatComponent::BeginPlay()
 {
+	DefaultActionSlot = NewObject<UCombatActionSlot>(this);
+	LeftActionSlot = NewObject<UCombatActionSlot>(this);
+	CenterActionSlot = NewObject<UCombatActionSlot>(this);
+	RightActionSlot = NewObject<UCombatActionSlot>(this);
+
 	ALODBaseGameModeBase* GameMode = Cast<ALODBaseGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (GameMode == nullptr) return;
 
@@ -58,4 +58,31 @@ void UCombatComponent::RefreshSlots()
 	LeftActionSlot->DecreaseCooldown(1);
 	CenterActionSlot->DecreaseCooldown(1);
 	RightActionSlot->DecreaseCooldown(1);
+}
+
+void UCombatComponent::AddNewCombatAction(FName CombatActionKey)
+{
+	ALODBaseGameModeBase* GameMode = Cast<ALODBaseGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GameMode == nullptr) return;
+
+	UDataTable* CombatActionTable = GameMode->GetCombatActionDataTable();
+	if (CombatActionTable == nullptr) return;
+
+	static const FString ContextString(TEXT("UCombatComponent"));
+
+	FCombatAction* InitialActionRef = CombatActionTable->FindRow<FCombatAction>(CombatActionKey, ContextString, false);
+	if (InitialActionRef == nullptr) return;
+
+	if (!LeftActionSlot->IsEnable())
+	{
+		LeftActionSlot->SetCombatAction(*InitialActionRef);
+	}
+	else if (!CenterActionSlot->IsEnable())
+	{
+		CenterActionSlot->SetCombatAction(*InitialActionRef);
+	}
+	else if (!RightActionSlot->IsEnable())
+	{
+		RightActionSlot->SetCombatAction(*InitialActionRef);
+	}
 }

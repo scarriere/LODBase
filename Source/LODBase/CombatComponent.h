@@ -61,4 +61,6 @@ public:
 	UCombatActionSlot* GetCombatActionSlot(ActionSlotPosition ActionSlotPosition);
 
 	void RefreshSlots();
+
+	void AddNewCombatAction(FName CombatActionKey);
 };

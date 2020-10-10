@@ -67,7 +67,7 @@ public:
 	float GetHealthPercent();
 
 	float Flinch();
-	float Died();
+	virtual float Died();
 	float Revive();
 
 	bool IsAlive();

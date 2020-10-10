@@ -47,6 +47,8 @@ void ACombatAIController::StartCombat(APawn* Target, FVector CombatPosition)
 	ActorCombatComponent = ControlledCharacter->GetCombatComponent();
 	if (ActorCombatComponent == nullptr) return;
 
+	NextCombatAction = ActorCombatComponent->GetCombatActionSlot(ActionSlotPosition::DEFAULT);
+
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartCombat"))
 	CombatStep = CombatStep::IDLE;
 	SetFocus(Target, EAIFocusPriority::Gameplay);

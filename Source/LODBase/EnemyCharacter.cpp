@@ -7,6 +7,7 @@
 #include "EnemyAIController.h"
 #include "BasePlayerController.h"
 #include "ControllableCharacter.h"
+#include "Actors/ItemPickup.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -54,4 +55,17 @@ void AEnemyCharacter::OnCombatOverlap(UPrimitiveComponent * OverlappedComponent,
 	CombatSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	OtherCharacter->EncounterEnemy(this);
+}
+
+float AEnemyCharacter::Died()
+{
+	float AnimationTime = Super::Died();
+
+	if (!ItemDropName.IsEmpty())
+	{
+		AItemPickup* ItemDrop = GetWorld()->SpawnActorDeferred<AItemPickup>(AItemPickup::StaticClass(), GetActorTransform());
+		ItemDrop->SetItemName(ItemDropName);
+		ItemDrop->FinishSpawning(GetActorTransform());
+	}
+	return AnimationTime;
 }

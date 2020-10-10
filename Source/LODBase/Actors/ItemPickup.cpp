@@ -14,3 +14,8 @@ bool AItemPickup::Interact(ABasePlayerController* PlayerController)
 	GetWorld()->DestroyActor(this);
 	return true;
 }
+
+void AItemPickup::SetItemName(FString Name)
+{
+	ItemName = Name;
+}

@@ -4,18 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "../InteractionActor.h"
-#include "ItemPickup.generated.h"
+#include "SkillGiver.generated.h"
 
 UCLASS()
-class LODBASE_API AItemPickup : public AInteractionActor
+class LODBASE_API ASkillGiver : public AInteractionActor
 {
 	GENERATED_BODY()
-
+	
 private:
 	UPROPERTY(EditAnywhere)
-	FString ItemName;
+	FName CombatSkill;
+
+	UPROPERTY(EditAnywhere)
+	int CharacterIndex;
 
 public:
 	virtual bool Interact(ABasePlayerController* PlayerController);
-	void SetItemName(FString Name);
 };
