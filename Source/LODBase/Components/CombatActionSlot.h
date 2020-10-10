@@ -36,5 +36,6 @@ public:
 
 	FCombatAction UseSlot();
 	void DecreaseCooldown(int Amount);
+	void ResetCooldown();
 	bool IsReady();
 };

@@ -27,6 +27,11 @@ void UCombatActionSlot::DecreaseCooldown(int Amount)
 	CooldownTurnLeft = FMath::Max(0, CooldownTurnLeft - Amount);
 }
 
+void UCombatActionSlot::ResetCooldown()
+{
+	CooldownTurnLeft = 0;
+}
+
 bool UCombatActionSlot::IsReady()
 {
 	return Enable && CooldownTurnLeft == 0;

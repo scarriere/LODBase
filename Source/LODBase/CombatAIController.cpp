@@ -47,6 +47,7 @@ void ACombatAIController::StartCombat(APawn* Target, FVector CombatPosition)
 	ActorCombatComponent = ControlledCharacter->GetCombatComponent();
 	if (ActorCombatComponent == nullptr) return;
 
+	ActorCombatComponent->ResetSlots();
 	NextCombatAction = ActorCombatComponent->GetCombatActionSlot(ActionSlotPosition::DEFAULT);
 
 	UE_LOG(LogTemp, Warning, TEXT("ACombatAIController::StartCombat"))

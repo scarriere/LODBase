@@ -60,6 +60,14 @@ void UCombatComponent::RefreshSlots()
 	RightActionSlot->DecreaseCooldown(1);
 }
 
+void UCombatComponent::ResetSlots()
+{
+	DefaultActionSlot->ResetCooldown();
+	LeftActionSlot->ResetCooldown();
+	CenterActionSlot->ResetCooldown();
+	RightActionSlot->ResetCooldown();
+}
+
 void UCombatComponent::AddNewCombatAction(FName CombatActionKey)
 {
 	ALODBaseGameModeBase* GameMode = Cast<ALODBaseGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
