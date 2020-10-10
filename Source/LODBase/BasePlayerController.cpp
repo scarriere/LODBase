@@ -33,6 +33,7 @@ void ABasePlayerController::BeginPlay()
 
 	InputComponent->BindAxis(TEXT("MoveForward"), this, &ABasePlayerController::MoveForward);
 	InputComponent->BindAxis(TEXT("MoveRight"), this, &ABasePlayerController::MoveRight);
+	InputComponent->BindAxis(TEXT("LookRightRate"), this, &ABasePlayerController::LookRightRate);
 
 	InputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ABasePlayerController::Jump);
 	InputComponent->BindAction(TEXT("AttackRight"), IE_Pressed, this, &ABasePlayerController::AttackRight);
@@ -47,7 +48,7 @@ void ABasePlayerController::MoveForward(float AxisValue)
 	if (State == ControllerState::FREE_WALK)
 	{
 		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
-		float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
+		float CameraRotationZ = GetControlRotation().Euler().Z;
 		FRotator CameraFlatRotation(0.f, CameraRotationZ, 0.f);
 		GetCharacter()->AddMovementInput(UKismetMathLibrary::GetForwardVector(CameraFlatRotation), AxisValue);
 	}
@@ -58,9 +59,17 @@ void ABasePlayerController::MoveRight(float AxisValue)
 	if (State == ControllerState::FREE_WALK)
 	{
 		AControllableCharacter* ControllableCharacter = Cast<AControllableCharacter>(GetCharacter());
-		float CameraRotationZ = ControllableCharacter->GetCameraArm()->GetRelativeRotation().Euler().Z;
+		float CameraRotationZ = GetControlRotation().Euler().Z;
 		FRotator CameraFlatRotation(0.f, CameraRotationZ, 0.f);
 		GetCharacter()->AddMovementInput(UKismetMathLibrary::GetRightVector(CameraFlatRotation), AxisValue);
+	}
+}
+
+void ABasePlayerController::LookRightRate(float AxisValue)
+{
+	if (State == ControllerState::FREE_WALK)
+	{
+		AddYawInput(AxisValue * RotationRate * GetWorld()->GetDeltaSeconds());
 	}
 }
 

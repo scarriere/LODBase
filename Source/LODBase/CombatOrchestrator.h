@@ -70,7 +70,7 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	void Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter);
+	void Initialize(AControllableCharacter* PlayerCharacter, ABaseCharacter* EnemyCharacter, USpringArmComponent* PlayerCameraArm);
 	void AddCharacter(ABaseCharacter* NewCharacter);
 
 	ACombatAIController* GetCurrentTurnController();

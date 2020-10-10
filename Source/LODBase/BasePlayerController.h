@@ -74,6 +74,8 @@ private:
 	float ComboStartTime = 0.f;
 	FName ComboAttackAction;
 
+	float RotationRate = 45.f;
+
 	void AttackKeyPressed(FName AttackAction);
 
 protected:
@@ -81,6 +83,8 @@ protected:
 
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
+	void LookRightRate(float AxisValue);
+
 	void Jump();
 	void AttackRight();
 	void AttackLeft();

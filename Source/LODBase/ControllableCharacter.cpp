@@ -69,7 +69,7 @@ void AControllableCharacter::EncounterEnemy(ABaseCharacter * Enemy)
 	{
 		CombatOrchestrator = GetWorld()->SpawnActorDeferred<ACombatOrchestrator>(CombatOrchestratorType, GetActorTransform());
 		StartCombat(CombatOrchestrator);
-		CombatOrchestrator->Initialize(this, Enemy);
+		CombatOrchestrator->Initialize(this, Enemy, CameraArm);
 		CombatOrchestrator->FinishSpawning(GetActorTransform());
 	}
 	else

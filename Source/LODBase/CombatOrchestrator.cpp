@@ -43,13 +43,15 @@ void ACombatOrchestrator::Tick(float DeltaTime)
 	SetActorLocation(CameraFocus->GetActorLocation());
 }
 
-void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, ABaseCharacter* EnemyCharacter)
+void ACombatOrchestrator::Initialize(AControllableCharacter* APlayerCharacter, ABaseCharacter* EnemyCharacter, USpringArmComponent* PlayerCameraArm)
 {
 	if (APlayerCharacter == nullptr || EnemyCharacter == nullptr) return;
 	PlayerCharacter = APlayerCharacter;
 	CameraFocus = PlayerCharacter;
 
 	CombatCenter = FMath::Lerp(PlayerCharacter->GetActorLocation(), EnemyCharacter->GetActorLocation(), .5f);
+	FRotator CameraRotation(CameraArm->GetComponentRotation().Pitch, (EnemyCharacter->GetActorLocation() - PlayerCharacter->GetActorLocation()).Rotation().Yaw, CameraArm->GetComponentRotation().Roll);
+	CameraArm->SetWorldRotation(CameraRotation);
 	//DrawDebugSphere(GetWorld(), CombatCenter, CombatRadius, 16, FColor::Yellow, true);
 
 	PlayerCharacters.Add(Cast<ABaseCharacter>(PlayerCharacter));
